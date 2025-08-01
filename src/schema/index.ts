@@ -1,0 +1,604 @@
+import { z } from "zod";
+
+// Phone validation schema
+export const phoneSchema = z
+	.string()
+	.min(1, "Phone number is required")
+	.regex(/^\+[1-9]\d{1,14}$/, "Please enter a valid phone number");
+
+// Base schemas
+export const categorySchema = z.object({
+	id: z.string(),
+	title: z.string(),
+});
+
+export const brandSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+});
+
+export const mediaSchema = z.object({
+	id: z.string(),
+	content_type: z.string(),
+	file_id: z.string(),
+	alt: z.string(),
+});
+
+// Type definitions
+export type AuthHeaders = {
+	authorization: string;
+};
+
+// Authentication schemas
+export const authUserSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	username: z.string(),
+	firstName: z.string(),
+	lastName: z.string(),
+	email: z.string(),
+	createAt: z.string(),
+	enabled: z.boolean(),
+	tenant: z.string(),
+	tenantLanguages: z.array(z.string()),
+	attributes: z.object({
+		permissionId: z.array(z.string()).default([]),
+		jobTitle: z.array(z.string()).default([]),
+		local: z.array(z.string()).default([]),
+	}),
+});
+
+export const loginResponseSchema = z.object({
+	access_token: z.string(),
+	refresh_token: z.string(),
+	access_token_expiration: z.number(),
+	refresh_token_expiration: z.number(),
+	user: authUserSchema,
+	customer: z.lazy(() => customerSchema),
+	address: z.lazy(() => addressSchema).nullish(),
+});
+
+// Address schemas
+export const addressFormSchema = z.object({
+	title: z.string().min(1, "Required"),
+	country: z.string().min(1, "Required"),
+	state: z.string().min(1, "Required"),
+	city: z.string().min(1, "Required"),
+	address1: z.string().min(1, "Required"),
+	address2: z.string().optional(),
+	phonenumber: phoneSchema,
+	is_default: z.boolean().optional(),
+	postal_code: z.string().optional(),
+});
+
+export const addressSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	country: z.string(),
+	state: z.string(),
+	city: z.string(),
+	address1: z.string(),
+	address2: z.string(),
+	phonenumber: phoneSchema,
+	is_default: z.boolean(),
+	postal_code: z.string(),
+});
+
+export const createAddressSchema = z.object({
+	title: z.string(),
+	country: z.string(),
+	state: z.string(),
+	city: z.string(),
+	address1: z.string(),
+	address2: z.string(),
+	phonenumber: phoneSchema,
+	is_default: z.boolean(),
+	postal_code: z.string(),
+});
+
+export const updateAddressSchema = z.object({
+	title: z.string(),
+	country: z.string(),
+	state: z.string(),
+	city: z.string(),
+	address1: z.string(),
+	address2: z.string(),
+	phonenumber: phoneSchema,
+	postal_code: z.string(),
+	is_default: z.boolean(),
+});
+
+// Customer schemas
+export const customerSchema = z.object({
+	id: z.string(),
+	external_user_id: z.string(),
+	firstname: z.string(),
+	lastname: z.string(),
+	language: z.string(),
+	// TODO: Remove this once the API is updated
+	phonenumber: z.union([phoneSchema, z.literal("")]),
+	email: z.string(),
+	gender: z.number(),
+	date_of_birth: z.string().nullable(),
+	addresses: z.array(addressSchema).nullish().default([]),
+});
+
+export const customerListSchema = z.object({
+	items: z.array(customerSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const createCustomerSchema = z.object({
+	external_user_id: z.string(),
+	firstname: z.string(),
+	lastname: z.string(),
+	language: z.string(),
+	phonenumber: z.string(),
+	email: z.string(),
+	gender: z.number(),
+	date_of_birth: z.string(),
+});
+
+export const updateCustomerSchema = createCustomerSchema;
+
+// Product schemas
+export const productSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	description: z.preprocess(
+		(val) => {
+			if (typeof val === "string") {
+				try {
+					return JSON.parse(val);
+				} catch {
+					return val;
+				}
+			}
+			return val;
+		},
+		z.array(
+			z.object({
+				title: z.string(),
+				index: z.number(),
+				description: z.string(),
+			}),
+		),
+	),
+	short_description: z.string(),
+	price: z.number(),
+	rating: z.number(),
+	sku: z.string(),
+	slug: z.string(),
+	currency: z.string().transform(() => "CAD"),
+	unit: z.string(),
+	weight: z.number().optional(),
+	disable: z.boolean(),
+	out_of_stock: z.boolean(),
+	attributes: z.array(
+		z.object({
+			id: z.string(),
+			product_id: z.string(),
+			parent_id: z.string().nullable(),
+			media_id: z.string().nullable(),
+			type: z.string(),
+			extra: z.string(),
+			children: z.array(
+				z.object({
+					id: z.string(),
+					product_id: z.string(),
+					parent_id: z.string(),
+					media_id: z.string().nullable(),
+					type: z.string(),
+					extra: z.string(),
+					price: z.number(),
+					sku: z.string(),
+					children: z.array(z.unknown()),
+				}),
+			),
+		}),
+	),
+	media: z.array(mediaSchema).nullish().default([]),
+	categories: z.array(categorySchema).nullish().default([]),
+	brands: z.array(brandSchema).nullish().default([]),
+});
+
+export const productListItemSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	price: z.number(),
+	sku: z.string(),
+	slug: z.string().nullable(),
+	currency: z.string().transform(() => "CAD"),
+	unit: z.string(),
+	weight: z.number().optional(),
+	out_of_stock: z.boolean(),
+	media_id: z.string().nullable(),
+	media_content_type: z.string().nullable(),
+	media_file_id: z.string().nullable(),
+	category_id: z.string().nullable(),
+	category_title: z.string().nullable(),
+	brand_id: z.string().nullable(),
+	brand_title: z.string().nullable(),
+});
+
+export const productListSchema = z.object({
+	items: z.array(productListItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const categoryListItemSchema = z.object({
+	id: z.string(),
+	parent_id: z.string().nullable(),
+	media_id: z.string().nullable(),
+	title: z.string(),
+	products: z.number(),
+	children: z.array(
+		z.object({
+			id: z.string(),
+			parent_id: z.string(),
+			media_id: z.string().nullable(),
+			title: z.string(),
+			children: z.array(z.unknown()),
+		}),
+	),
+});
+// Category schemas
+export const categoryListSchema = z.object({
+	items: z.array(categoryListItemSchema).nullable().default([]),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+// Cart schemas
+export const cartListSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			product_id: z.string(),
+			product_attribute_id: z.string().optional(),
+			quantity: z.number(),
+			device_token: z.string(),
+			notes: z.string(),
+			created_at: z.string(),
+			total_price: z.number(),
+			product: z.object({
+				id: z.string(),
+				title: z.string(),
+				description: z.string(),
+				short_description: z.string(),
+				price: z.number().nullish(),
+				sku: z.string(),
+				slug: z.string(),
+				currency: z.string(),
+				unit: z.string(),
+				disable: z.boolean(),
+				out_of_stock: z.boolean(),
+				reviews_count: z.number(),
+				rating: z.number(),
+				attributes: z.array(
+					z.object({
+						id: z.string(),
+						product_id: z.string(),
+						parent_id: z.string().nullable(),
+						media_id: z.string().nullable(),
+						type: z.string(),
+						extra: z.string(),
+						price: z.number().nullish(),
+						children: z.array(z.unknown()),
+					}),
+				),
+				media: z
+					.array(
+						z.object({
+							id: z.string(),
+							content_type: z.string(),
+							file_id: z.string(),
+							alt: z.string(),
+						}),
+					)
+					.nullable()
+					.default([]),
+				categories: z
+					.array(
+						z.object({
+							id: z.string(),
+							title: z.string(),
+						}),
+					)
+					.nullable()
+					.default([]),
+				brands: z
+					.array(
+						z.object({
+							id: z.string(),
+							title: z.string(),
+						}),
+					)
+					.nullable()
+					.default([]),
+			}),
+		}),
+	),
+	total_price: z.number().optional().default(0),
+});
+
+export const upsertCartSchema = z.object({
+	product_id: z.string(),
+	customer_id: z.string().optional(),
+	product_attribute_id: z.string().nullish(),
+	quantity: z.number(),
+	notes: z.string(),
+});
+
+// Order schemas
+export const orderItemSchema = z.object({
+	id: z.string(),
+	order_id: z.string(),
+	cart_id: z.string(),
+	product_id: z.string(),
+	product_attribute_id: z.string().nullable(),
+	price: z.number(),
+	price_updated_at: z.string(),
+	quantity: z.number(),
+	notes: z.string(),
+	created_at: z.string(),
+});
+
+export const getOrderItemSchema = z.object({
+	id: z.string(),
+	order_id: z.string(),
+	cart_id: z.string(),
+	product_id: z.string(),
+	product_attribute_id: z.string().nullable(),
+	price: z.number(),
+	price_updated_at: z.string(),
+	quantity: z.number(),
+	notes: z.string(),
+	created_at: z.string(),
+});
+
+export const orderPaymentSchema = z.object({
+	id: z.string(),
+	order_id: z.string(),
+	status: z.number(),
+	provider: z.string(),
+	amount: z.number(),
+	created_at: z.string(),
+	provider_extra_information: z.object({
+		id: z.string(),
+		payment_id: z.string(),
+		url: z.string(),
+		payment_status: z.string(),
+		session_status: z.string(),
+		session_expires_at: z.number(),
+		session_created_at: z.number(),
+	}),
+});
+
+export const orderSchema = z.object({
+	order: z.object({
+		id: z.string(),
+		customer_id: z.string(),
+		address_id: z.string(),
+		currency: z.string(),
+		total_price: z.number(),
+		total_paid: z.number(),
+		created_at: z.string(),
+		payment_id: z.string(),
+		payment_provider: z.string(),
+		payment_status: z.string(),
+		payment_created_at: z.string(),
+		items: z.array(orderItemSchema),
+	}),
+	payment: orderPaymentSchema,
+});
+
+export const orderListSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			number: z.string(),
+			customer_id: z.string(),
+			currency: z.string(),
+			total_price: z.number(),
+			total_paid: z.number(),
+			created_at: z.string(),
+			payment_id: z.string(),
+			payment_provider: z.string(),
+			payment_status: z.string(),
+			payment_created_at: z.string(),
+			items_count: z.number().optional(),
+			current_step: z.object({
+				id: z.string(),
+				order_id: z.string(),
+				kind: z.string(),
+				extra: z.string(),
+				created_at: z.string(),
+			}),
+			items: z
+				.array(
+					z.object({
+						id: z.string(),
+						order_id: z.string(),
+						cart_id: z.string(),
+						product_id: z.string(),
+						product_attribute_id: z.string().nullable(),
+						price: z.number(),
+						price_updated_at: z.string(),
+						quantity: z.number(),
+						notes: z.string(),
+						created_at: z.string(),
+						product: productSchema.optional(),
+					}),
+				)
+				.optional(),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const getOrderSchema = z.object({
+	id: z.string().uuid(),
+	number: z.string(),
+	customer_id: z.string().uuid(),
+	address_id: z.string().uuid(),
+	currency: z.string(),
+	total_price: z.number(),
+	total_paid: z.number(),
+	shipment_service_code: z.string(),
+	shipment_price: z.number(),
+	created_at: z.string().datetime({ offset: true }),
+	payment_id: z.string().uuid(),
+	payment_provider: z.string(),
+	payment_status: z.string(),
+	payment_created_at: z.string().datetime({ offset: true }),
+	items_count: z.number().int(),
+	current_step: z.object({
+		id: z.string().uuid(),
+		order_id: z.string().uuid(),
+		kind: z.string(),
+		extra: z.string(), // Again, can be parsed to JSON if needed
+		created_at: z.string().datetime({ offset: true }),
+	}),
+	logs: z.array(
+		z.object({
+			id: z.string().uuid(),
+			order_id: z.string().uuid(),
+			kind: z.string(),
+			extra: z.string(), // Consider parsing as JSON if needed
+			created_at: z.string().datetime({ offset: true }),
+		}),
+	),
+	items: z.array(
+		z.object({
+			id: z.string().uuid(),
+			order_id: z.string().uuid(),
+			cart_id: z.string().uuid(),
+			product_id: z.string().uuid(),
+			product_attribute_id: z.string().uuid().nullable(),
+			price: z.number(),
+			price_updated_at: z.string().datetime({ offset: true }),
+			quantity: z.number().int(),
+			notes: z.string(),
+			created_at: z.string().datetime({ offset: true }),
+		}),
+	),
+});
+
+export const createOrderSchema = z.object({
+	locale: z.string(),
+	address_id: z.string().nullable(),
+	payment: z.object({ provider: z.string() }),
+	items: z.array(z.object({ cart_id: z.string() })),
+	shipment: z.object({ service_code: z.string() }),
+});
+
+export const updateOrderSchema = z.object({
+	status: z.number(),
+	tax: z.number(),
+	discount: z.number(),
+	delivery_amount: z.number(),
+	final_amount: z.number(),
+	payment_method_id: z.string(),
+	address_id: z.string().optional(),
+	driver_id: z.string().optional(),
+});
+
+// Review schemas
+export const reviewSchema = z.object({
+	product_attribute_id: z.string().nullish(),
+	customer_id: z.string(),
+	rating: z.number(),
+	comment: z.string(),
+});
+
+export const queryReviewSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			product_id: z.string(),
+			product_attribute_id: z.string().nullable(),
+			customer_id: z.string(),
+			customer_firstname: z.string().optional(),
+			customer_lastname: z.string().optional(),
+			is_verified: z.boolean().optional(),
+			rating: z.number(),
+			comment: z.string(),
+			created_at: z.string(),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+// Favorites schemas
+export const addToFavoritesSchema = z.object({
+	product_attribute_id: z.string().nullable(),
+});
+
+export const queryFavoritesSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string().uuid(),
+			title: z.string(),
+			customer_id: z.string().uuid(),
+			product_id: z.string().uuid(),
+			product_attribute_id: z.string().uuid().nullable(),
+			product_cover_media_id: z.string().uuid(),
+			price: z.number(),
+			sku: z.string(),
+			slug: z.string(),
+			out_of_stock: z.boolean(),
+			media_id: z.string().uuid(),
+			media_content_type: z.literal("image"),
+			media_file_id: z.string().uuid(),
+			created_at: z.string().datetime({ offset: true }),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+// Shipping schemas
+export const shippingRatesSchema = z.array(
+	z.object({
+		name: z.string(),
+		code: z.string(),
+		delivery: z.object({
+			guaranteed_delivery: z.boolean(),
+			expected_transit_time: z.number(),
+			expected_delivery_date: z.string(),
+		}),
+		pricing_details: z.object({
+			base: z.number(),
+			taxes: z.object({
+				gst: z.number(),
+				pst: z.number(),
+				hst: z.number(),
+			}),
+			due: z.number(),
+		}),
+	}),
+);
+
+// TGS schema
+export const tgsGenerateSchema = z.object({ token: z.string() });
+
+// Type exports
+export type AddressFormData = z.infer<typeof addressFormSchema>;
+export type Address = z.infer<typeof addressSchema>;
+export type Product = z.infer<typeof productSchema>;
+export type Order = z.infer<typeof getOrderSchema>;
+export type Customer = z.infer<typeof customerSchema>;
+export type User = z.infer<typeof authUserSchema>;
+export type CategoryListItem = z.infer<typeof categoryListItemSchema>;
+export type ProductListItem = z.infer<typeof productListItemSchema>;
