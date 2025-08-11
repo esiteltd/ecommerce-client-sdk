@@ -4,9 +4,9 @@ export interface SDKConfig {
 	timeout?: number;
 	retries?: number;
 	auth?: {
-		getAccessToken: () => string | undefined;
-		getCustomerId: () => string | undefined;
-		getDeviceToken: () => string | undefined;
+		getAccessToken: () => string | null;
+		getCustomerId: () => string | null;
+		getDeviceToken: () => string | null;
 	};
 }
 
