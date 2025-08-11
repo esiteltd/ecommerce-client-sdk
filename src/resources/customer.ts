@@ -10,7 +10,6 @@ import {
 	addressSchema,
 } from "../schema";
 import { BaseClient } from "../client/base-client";
-import { getCustomerId } from "../providers/AuthStoreProvider";
 
 export class Customer extends BaseClient {
 	async get() {
@@ -119,7 +118,7 @@ export class Customer extends BaseClient {
 		body: z.infer<typeof createAddressSchema>;
 	}) {
 		const validatedBody = createAddressSchema.parse(body);
-		const url = `/customer/${getCustomerId()}/address`;
+		const url = `/customer/${this.customerId}/address`;
 		const result = await this.request(url, {
 			method: "POST",
 			body: JSON.stringify(validatedBody),

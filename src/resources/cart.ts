@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { cartListSchema, upsertCartSchema } from "../schema";
+import { QueryCart, queryCartSchema, upsertCartSchema } from "../schema";
 import { BaseClient } from "../client/base-client";
-import { getDeviceToken } from "../providers/AuthStoreProvider";
 import { objectToURLSearchParams } from "../utils";
 
 export class Cart extends BaseClient {
@@ -18,10 +17,12 @@ export class Cart extends BaseClient {
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
-		return cartListSchema.parse(result);
+		return queryCartSchema.parse(result);
 	}
 
 	async upsert({ body }: { body: z.infer<typeof upsertCartSchema> }) {
+		if (typeof window === "undefined") return { items: [] };
+
 		const validatedBody = upsertCartSchema.parse(body);
 		const url = "/cart";
 		await this.request(url, {
@@ -29,36 +30,33 @@ export class Cart extends BaseClient {
 			body: JSON.stringify({
 				...validatedBody,
 				quantity: Math.min(validatedBody.quantity, 10),
-				device_token: getDeviceToken(),
+				device_token: this.deviceToken,
 			}),
 		});
 		return;
 	}
 
 	async add({ body }: { body: z.infer<typeof upsertCartSchema> }) {
+		if (typeof window === "undefined") return { items: [] };
+
 		const validatedBody = upsertCartSchema.parse(body);
 		const url = "/cart/add";
 		await this.request(url, {
 			method: "POST",
 			body: JSON.stringify({
 				...validatedBody,
-				device_token: getDeviceToken(),
+				device_token: this.deviceToken,
 			}),
 		});
 		return;
 	}
 
-	async query({
-		query,
-	}: {
-		query: {
-			device_token: string;
-			quantity?: number;
-			customer_id?: string;
-			locale: string;
-		};
-	}) {
-		const url = "/cart?" + objectToURLSearchParams(query);
+	async query({ locale }: { locale: string }): Promise<QueryCart> {
+		if (typeof window === "undefined") return { items: [], total_price: 0 };
+
+		const url =
+			"/public/cart?" +
+			objectToURLSearchParams({ device_token: this.deviceToken, locale });
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
@@ -70,9 +68,10 @@ export class Cart extends BaseClient {
 					v.product.id !== "00000000-0000-0000-0000-000000000000",
 			),
 		};
-		const parsedResult = cartListSchema.safeParse(cleanResult);
+		const parsedResult = queryCartSchema.safeParse(cleanResult);
 		if (!parsedResult.success) {
 			console.error(parsedResult.error);
+			throw parsedResult.error;
 		}
 		return parsedResult.data;
 	}

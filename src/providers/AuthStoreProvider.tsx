@@ -1,8 +1,12 @@
 "use client";
 
-import { type ReactNode, createContext, useRef, useContext } from "react";
+import React, {
+	type ReactNode,
+	createContext,
+	useRef,
+	useContext,
+} from "react";
 import { useStore } from "zustand";
-
 import { type AuthStore, createAuthStore } from "../stores/auth-store";
 import { v4 } from "uuid";
 
@@ -12,22 +16,32 @@ export const AuthStoreContext = createContext<AuthStoreApi | undefined>(
 	undefined,
 );
 
-function getDeviceIdentifier() {
+function getDeviceIdentifier(): string {
+	// Always return empty string during SSR
 	if (typeof window === "undefined") return "";
 
-	const cached = localStorage.getItem("device_identifier");
+	try {
+		const cached = localStorage.getItem("device_identifier");
+		if (cached) return cached;
 
-	if (cached) return cached;
-
-	const newToken = v4();
-	localStorage.setItem("device_identifier", newToken);
-	return newToken;
+		const newToken = v4();
+		localStorage.setItem("device_identifier", newToken);
+		return newToken;
+	} catch (error) {
+		// Handle cases where localStorage is not available (private browsing, etc.)
+		console.warn(
+			"localStorage not available, generating temporary device ID:",
+			error,
+		);
+		return v4(); // Return a new token without caching
+	}
 }
 
 let globalRef: AuthStoreApi | null = null;
 
 export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 	const storeRef = useRef<AuthStoreApi | null>(null);
+
 	if (!storeRef.current) {
 		storeRef.current = createAuthStore({
 			deviceToken: getDeviceIdentifier(),
@@ -48,26 +62,27 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 	);
 };
 
-// This function should be used only in client-only components and functions
-export function getAccessToken() {
-	return globalRef?.getState().accessToken;
+// These functions should be used only in client-only components and functions
+export function getAccessToken(): string | null {
+	if (typeof window === "undefined") return null;
+	return globalRef?.getState().accessToken ?? null;
 }
 
-// This function should be used only in client-only components and functions
-export function getDeviceToken() {
-	return globalRef?.getState().deviceToken;
+export function getDeviceToken(): string | null {
+	if (typeof window === "undefined") return null;
+	return globalRef?.getState().deviceToken ?? null;
 }
 
-// This function should be used only in client-only components and functions
-// Should be removed from the code
-export function getExternalUserId() {
-	return globalRef?.getState().user?.id;
+// Should be removed from the code as noted in your original comment
+export function getExternalUserId(): string | null {
+	if (typeof window === "undefined") return null;
+	return globalRef?.getState().user?.id ?? null;
 }
 
-// This function should be used only in client-only components and functions
-// Should be removed from the code
-export function getCustomerId() {
-	return globalRef?.getState().customer?.id;
+// Should be removed from the code as noted in your original comment
+export function getCustomerId(): string | null {
+	if (typeof window === "undefined") return null;
+	return globalRef?.getState().customer?.id ?? null;
 }
 
 export const useAuthStore = <T,>(selector: (store: AuthStore) => T): T => {

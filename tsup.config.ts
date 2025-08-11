@@ -1,11 +1,15 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-	entry: ["src/index.ts"],
+	entry: ["src/index.ts", "src/client.ts"],
 	format: ["cjs", "esm"],
 	dts: true,
 	sourcemap: true,
 	clean: true,
 	splitting: false,
-	minify: true,
+	minify: false,
+	esbuildOptions(options) {
+		options.jsx = "automatic";
+		options.jsxImportSource = "react";
+	},
 });

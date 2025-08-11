@@ -1,10 +1,13 @@
-import { getAccessToken, getDeviceToken } from "../providers/AuthStoreProvider";
-
 export interface SDKConfig {
 	baseUrl: string;
 	tenant: string;
 	timeout?: number;
 	retries?: number;
+	auth?: {
+		getAccessToken: () => string | undefined;
+		getCustomerId: () => string | undefined;
+		getDeviceToken: () => string | undefined;
+	};
 }
 
 export interface RequestOptions {
@@ -19,6 +22,13 @@ export class BaseClient {
 
 	get tenant(): string {
 		return this.config.tenant;
+	}
+
+	get customerId(): string {
+		return this.config.auth?.getCustomerId() ?? "Not provided";
+	}
+	get deviceToken(): string {
+		return this.config.auth?.getDeviceToken() ?? "Not provided";
 	}
 
 	constructor(config: SDKConfig) {
@@ -47,12 +57,19 @@ export class BaseClient {
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 			"x-api-tenant": this.config.tenant,
-			...(getDeviceToken() ? { "x-device-id": getDeviceToken() } : {}),
 			...options.headers,
 		};
 
-		if (options.authentication) {
-			headers["Authorization"] = `Bearer ${getAccessToken()}`;
+		if (this.config.auth) {
+			const deviceToken = this.config.auth.getDeviceToken();
+			if (deviceToken != null) {
+				headers["x-device-id"] = deviceToken;
+			}
+
+			if (options.authentication) {
+				headers["Authorization"] =
+					`Bearer ${this.config.auth.getAccessToken()}`;
+			}
 		}
 
 		const requestInit: RequestInit = {

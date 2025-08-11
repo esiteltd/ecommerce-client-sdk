@@ -255,7 +255,7 @@ export const categoryListSchema = z.object({
 });
 
 // Cart schemas
-export const cartListSchema = z.object({
+export const queryCartSchema = z.object({
 	items: z.array(
 		z.object({
 			id: z.string(),
@@ -602,3 +602,4 @@ export type Customer = z.infer<typeof customerSchema>;
 export type User = z.infer<typeof authUserSchema>;
 export type CategoryListItem = z.infer<typeof categoryListItemSchema>;
 export type ProductListItem = z.infer<typeof productListItemSchema>;
+export type QueryCart = z.infer<typeof queryCartSchema>;
