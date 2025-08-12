@@ -39,6 +39,7 @@ export type {
 	Order,
 	Customer,
 	CategoryListItem,
+	UpsertCart,
 } from "./schema";
 
 // Default export

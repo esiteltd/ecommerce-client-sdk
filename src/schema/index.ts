@@ -603,3 +603,4 @@ export type User = z.infer<typeof authUserSchema>;
 export type CategoryListItem = z.infer<typeof categoryListItemSchema>;
 export type ProductListItem = z.infer<typeof productListItemSchema>;
 export type QueryCart = z.infer<typeof queryCartSchema>;
+export type UpsertCart = z.infer<typeof upsertCartSchema>;

@@ -8,6 +8,7 @@ import {
 	reviewSchema,
 } from "../schema";
 import { BaseClient } from "../client/base-client";
+import { objectToURLSearchParams } from "../utils";
 
 export class Product extends BaseClient {
 	async get({
@@ -32,19 +33,11 @@ export class Product extends BaseClient {
 			locale: string;
 			page: number;
 			size: number;
-			categoryId?: string;
+			category_id?: string;
 			title?: string;
 		};
 	}) {
-		const url =
-			"/public/product?" +
-			new URLSearchParams({
-				...query,
-				page: query.page.toString(),
-				size: query.size.toString(),
-				...(query.categoryId ? { category_id: query.categoryId } : {}),
-				...(query.title ? { title: query.title } : {}),
-			});
+		const url = "/public/product?" + objectToURLSearchParams(query);
 
 		const result = await this.request(url, {
 			method: "GET",

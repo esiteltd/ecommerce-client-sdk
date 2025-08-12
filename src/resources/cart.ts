@@ -21,7 +21,7 @@ export class Cart extends BaseClient {
 	}
 
 	async upsert({ body }: { body: z.infer<typeof upsertCartSchema> }) {
-		if (typeof window === "undefined") return { items: [] };
+		if (typeof window === "undefined") return;
 
 		const validatedBody = upsertCartSchema.parse(body);
 		const url = "/cart";
@@ -37,16 +37,16 @@ export class Cart extends BaseClient {
 	}
 
 	async add({ body }: { body: z.infer<typeof upsertCartSchema> }) {
-		if (typeof window === "undefined") return { items: [] };
+		if (typeof window === "undefined") return;
 
 		const validatedBody = upsertCartSchema.parse(body);
-		const url = "/cart/add";
+		const url = "/public/cart/add";
 		await this.request(url, {
 			method: "POST",
-			body: JSON.stringify({
+			body: {
 				...validatedBody,
 				device_token: this.deviceToken,
-			}),
+			},
 		});
 		return;
 	}
