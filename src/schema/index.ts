@@ -254,76 +254,76 @@ export const categoryListSchema = z.object({
 	total: z.number(),
 });
 
+export const cartListItemSchema = z.object({
+	id: z.string(),
+	product_id: z.string(),
+	product_attribute_id: z.string().optional(),
+	quantity: z.number(),
+	device_token: z.string(),
+	notes: z.string(),
+	created_at: z.string(),
+	total_price: z.number(),
+	product: z.object({
+		id: z.string(),
+		title: z.string(),
+		description: z.string(),
+		short_description: z.string(),
+		price: z.number().nullish(),
+		is_taxable: z.boolean().nullish().default(false),
+		sku: z.string(),
+		slug: z.string(),
+		currency: z.string(),
+		unit: z.string(),
+		disable: z.boolean(),
+		out_of_stock: z.boolean(),
+		reviews_count: z.number(),
+		rating: z.number(),
+		attributes: z.array(
+			z.object({
+				id: z.string(),
+				product_id: z.string(),
+				parent_id: z.string().nullable(),
+				media_id: z.string().nullable(),
+				type: z.string(),
+				extra: z.string(),
+				price: z.number().nullish(),
+				children: z.array(z.unknown()),
+			}),
+		),
+		media: z
+			.array(
+				z.object({
+					id: z.string(),
+					content_type: z.string(),
+					file_id: z.string(),
+					alt: z.string(),
+				}),
+			)
+			.nullable()
+			.default([]),
+		categories: z
+			.array(
+				z.object({
+					id: z.string(),
+					title: z.string(),
+				}),
+			)
+			.nullable()
+			.default([]),
+		brands: z
+			.array(
+				z.object({
+					id: z.string(),
+					title: z.string(),
+				}),
+			)
+			.nullable()
+			.default([]),
+	}),
+});
 // Cart schemas
 export const queryCartSchema = z.object({
-	items: z.array(
-		z.object({
-			id: z.string(),
-			product_id: z.string(),
-			product_attribute_id: z.string().optional(),
-			quantity: z.number(),
-			device_token: z.string(),
-			notes: z.string(),
-			created_at: z.string(),
-			total_price: z.number(),
-			product: z.object({
-				id: z.string(),
-				title: z.string(),
-				description: z.string(),
-				short_description: z.string(),
-				price: z.number().nullish(),
-				sku: z.string(),
-				slug: z.string(),
-				currency: z.string(),
-				unit: z.string(),
-				disable: z.boolean(),
-				out_of_stock: z.boolean(),
-				reviews_count: z.number(),
-				rating: z.number(),
-				attributes: z.array(
-					z.object({
-						id: z.string(),
-						product_id: z.string(),
-						parent_id: z.string().nullable(),
-						media_id: z.string().nullable(),
-						type: z.string(),
-						extra: z.string(),
-						price: z.number().nullish(),
-						children: z.array(z.unknown()),
-					}),
-				),
-				media: z
-					.array(
-						z.object({
-							id: z.string(),
-							content_type: z.string(),
-							file_id: z.string(),
-							alt: z.string(),
-						}),
-					)
-					.nullable()
-					.default([]),
-				categories: z
-					.array(
-						z.object({
-							id: z.string(),
-							title: z.string(),
-						}),
-					)
-					.nullable()
-					.default([]),
-				brands: z
-					.array(
-						z.object({
-							id: z.string(),
-							title: z.string(),
-						}),
-					)
-					.nullable()
-					.default([]),
-			}),
-		}),
-	),
+	items: z.array(cartListItemSchema),
 	total_price: z.number().optional().default(0),
 });
 
@@ -590,6 +590,20 @@ export const shippingRatesSchema = z.array(
 	}),
 );
 
+export const tenantSchema = z.object({
+	address_city: z.string(),
+	address_line1: z.string(),
+	address_postal_zip_code: z.string(),
+	address_prov_state: z.string(),
+	company: z.string(),
+	contact_phone: z.string(),
+	currency: z.string(),
+	federal_tax: z.number(),
+	mode: z.string(),
+	province_tax: z.number(),
+	tenant_id: z.string(),
+});
+
 // TGS schema
 export const tgsGenerateSchema = z.object({ token: z.string() });
 
@@ -604,3 +618,4 @@ export type CategoryListItem = z.infer<typeof categoryListItemSchema>;
 export type ProductListItem = z.infer<typeof productListItemSchema>;
 export type QueryCart = z.infer<typeof queryCartSchema>;
 export type UpsertCart = z.infer<typeof upsertCartSchema>;
+export type CartListItem = z.infer<typeof cartListItemSchema>;

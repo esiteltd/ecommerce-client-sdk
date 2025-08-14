@@ -5,6 +5,7 @@ import { Category } from "./resources/category";
 import { Customer } from "./resources/customer";
 import { Order } from "./resources/order";
 import { Product } from "./resources/product";
+import { Tenant } from "./resources/tenant";
 import { TGS } from "./resources/tgs";
 
 export class EcommerceSDK {
@@ -15,6 +16,7 @@ export class EcommerceSDK {
 	public readonly cart: Cart;
 	public readonly order: Order;
 	public readonly customer: Customer;
+	public readonly tenant: Tenant;
 
 	constructor(config: SDKConfig) {
 		// Initialize all resources with the same config
@@ -25,22 +27,16 @@ export class EcommerceSDK {
 		this.cart = new Cart(config);
 		this.order = new Order(config);
 		this.customer = new Customer(config);
+		this.tenant = new Tenant(config);
 	}
 }
 
 // Export everything that consumers might need
-export { SDKConfig, SDKError } from "./client/base-client";
+export { type SDKConfig, SDKError } from "./client/base-client";
 export * from "./schema";
 
 // Export types
-export type {
-	Product,
-	ProductListItem,
-	Order,
-	Customer,
-	CategoryListItem,
-	UpsertCart,
-} from "./schema";
+export type * from "./schema";
 
 // Default export
 export default EcommerceSDK;
