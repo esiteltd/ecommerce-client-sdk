@@ -26,6 +26,17 @@
 			"default": "./dist/client.js"
 		}
 	},
+	"sideEffects": false,
+	"typesVersions": {
+		"*": {
+			"client": [
+				"./dist/client.d.ts"
+			],
+			"*": [
+				"./dist/index.d.ts"
+			]
+		}
+	},
 	"files": [
 		"dist/**/*"
 	],
@@ -41,11 +52,11 @@
 	"author": "Sajad",
 	"license": "MIT",
 	"peerDependencies": {
-		"zod": "^3.22.4"
+		"zod": "^3.22.4",
+		"react": ">=18.0.0",
+		"react-dom": ">=18.0.0"
 	},
 	"dependencies": {
-		"react": ">=18.0.0",
-		"react-dom": ">=18.0.0",
 		"uuid": "^11.1.0",
 		"zustand": "^5.0.7"
 	},

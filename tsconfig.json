@@ -14,8 +14,11 @@
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
 		"allowSyntheticDefaultImports": true,
-		"jsx": "preserve"
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
+		"isolatedModules": true,
+		"lib": ["ES2020", "DOM", "DOM.Iterable"]
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "**/*.test.ts"]
+	"exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"]
 }

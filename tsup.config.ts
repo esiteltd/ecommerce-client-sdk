@@ -12,4 +12,5 @@ export default defineConfig({
 		options.jsx = "automatic";
 		options.jsxImportSource = "react";
 	},
+	external: ["react", "react-dom", "zod", "uuid", "zustand"],
 });
