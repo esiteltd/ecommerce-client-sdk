@@ -18,7 +18,22 @@ export class Product extends BaseClient {
 		query: { lang: string };
 		productId: string;
 	}) {
-		const url = `/product/${productId}?` + new URLSearchParams(query);
+		const url = `/public/product/${productId}?` + new URLSearchParams(query);
+		const result = await this.request(url, {
+			method: "GET",
+		}).then((r) => r.json());
+
+		return productSchema.parse(result);
+	}
+
+	async getBySlug({
+		query,
+		slug,
+	}: {
+		query: { lang: string };
+		slug: string;
+	}) {
+		const url = `/public/product/slug/${slug}?` + new URLSearchParams(query);
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());

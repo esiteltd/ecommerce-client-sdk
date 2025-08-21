@@ -77,9 +77,12 @@ export class Cart extends BaseClient {
 	}
 
 	async removeItem({ cartItemId }: { cartItemId: string }) {
-		const url = `/cart/${cartItemId}`;
+		const url = `/public/cart/${cartItemId}`;
 		await this.request(url, {
 			method: "DELETE",
+			body: {
+				device_token: this.deviceToken,
+			},
 		}).then((r) => r.json());
 		return;
 	}
