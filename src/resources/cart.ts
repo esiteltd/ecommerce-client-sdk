@@ -24,14 +24,13 @@ export class Cart extends BaseClient {
 		if (typeof window === "undefined") return;
 
 		const validatedBody = upsertCartSchema.parse(body);
-		const url = "/cart";
+		const url = "/public/cart";
 		await this.request(url, {
 			method: "POST",
-			body: JSON.stringify({
+			body: {
 				...validatedBody,
-				quantity: Math.min(validatedBody.quantity, 10),
 				device_token: this.deviceToken,
-			}),
+			},
 		});
 		return;
 	}

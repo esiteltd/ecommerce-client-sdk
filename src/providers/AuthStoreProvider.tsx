@@ -70,7 +70,7 @@ export function getAccessToken(): string | null {
 
 export function getDeviceToken(): string | null {
 	if (typeof window === "undefined") return null;
-	return globalRef?.getState().deviceToken ?? null;
+	return globalRef?.getState().deviceToken ?? getDeviceIdentifier();
 }
 
 // Should be removed from the code as noted in your original comment
