@@ -1,5 +1,6 @@
 import { SDKConfig } from "./client/base-client";
 import { Auth } from "./resources/auth";
+import { Branch } from "./resources/branch";
 import { Cart } from "./resources/cart";
 import { Category } from "./resources/category";
 import { Customer } from "./resources/customer";
@@ -17,6 +18,7 @@ export class EcommerceSDK {
 	public readonly order: Order;
 	public readonly customer: Customer;
 	public readonly tenant: Tenant;
+	public readonly branch: Branch;
 
 	constructor(config: SDKConfig) {
 		// Initialize all resources with the same config
@@ -28,6 +30,7 @@ export class EcommerceSDK {
 		this.order = new Order(config);
 		this.customer = new Customer(config);
 		this.tenant = new Tenant(config);
+		this.branch = new Branch(config);
 	}
 }
 

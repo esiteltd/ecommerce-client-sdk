@@ -500,6 +500,68 @@ export const createOrderSchema = z.object({
 	shipment: z.object({ service_code: z.string() }),
 });
 
+export const createOrderGuestSchema = z.object({
+	api_key: z.string().min(1),
+	branch_id: z.string().uuid(),
+	locale: z.string().min(1),
+	address_id: z.string().uuid().optional(),
+	payment: z
+		.object({
+			provider: z.enum(["stripe", "zaincash", "switchpayment", "pos"]),
+			payment_transaction_id: z.string().optional(),
+		})
+		.refine(
+			(data) => {
+				// payment_transaction_id is required only for 'pos' provider
+				if (data.provider === "pos") {
+					return data.payment_transaction_id !== undefined;
+				}
+				return true;
+			},
+			{
+				message:
+					"payment_transaction_id is required when provider is 'pos'",
+				path: ["payment_transaction_id"],
+			},
+		)
+		.optional(),
+	shipment: z
+		.object({
+			service_code: z.string(),
+		})
+		.optional(),
+	items: z
+		.array(
+			z.object({
+				cart_id: z.string().uuid(),
+			}),
+		)
+		.min(1, "At least one item is required"),
+	customer: z.object({
+		firstname: z.string().min(1),
+		lastname: z.string().optional(),
+		language: z.string().min(1),
+		phonenumber: phoneSchema,
+		email: z.string().email().optional(),
+		gender: z
+			.union([z.literal(1), z.literal(2), z.enum(["MALE", "FEMALE"])])
+			.optional(),
+		date_of_birth: z.string().datetime().optional(),
+	}),
+	customer_address: z.object({
+		title: z.string().optional(),
+		country: z.string().optional(),
+		state: z.string().optional(),
+		city: z.string().optional(),
+		address1: z.string().optional(),
+		address2: z.string().optional(),
+		postal_code: z.string().optional(),
+		phonenumber: phoneSchema,
+		longitude: z.number(),
+		latitude: z.number(),
+	}),
+});
+
 export const updateOrderSchema = z.object({
 	status: z.number(),
 	tax: z.number(),
@@ -604,6 +666,35 @@ export const tenantSchema = z.object({
 	tenant_id: z.string(),
 });
 
+export const branchListItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	name: z.string(),
+	created_at: z.string(),
+	products: z.any(),
+	orders: z.any(),
+	drivers: z.any(),
+	geozones: z.array(
+		z.object({
+			id: z.string(),
+			branch_id: z.string(),
+			name: z.string(),
+			polygon: z.array(
+				z.object({ latitude: z.number(), longitude: z.number() }),
+			),
+			delivery_cost: z.string(),
+			created_at: z.string(),
+		}),
+	),
+});
+
+export const branchListSchema = z.object({
+	items: z.array(branchListItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
 // TGS schema
 export const tgsGenerateSchema = z.object({ token: z.string() });
 
@@ -614,8 +705,16 @@ export type Product = z.infer<typeof productSchema>;
 export type Order = z.infer<typeof getOrderSchema>;
 export type Customer = z.infer<typeof customerSchema>;
 export type User = z.infer<typeof authUserSchema>;
+
 export type CategoryListItem = z.infer<typeof categoryListItemSchema>;
+
 export type ProductListItem = z.infer<typeof productListItemSchema>;
+
 export type QueryCart = z.infer<typeof queryCartSchema>;
 export type UpsertCart = z.infer<typeof upsertCartSchema>;
 export type CartListItem = z.infer<typeof cartListItemSchema>;
+
+export type BranchListItem = z.infer<typeof branchListItemSchema>;
+export type BranchList = z.infer<typeof branchListSchema>;
+
+export type CreateOrderGuest = z.infer<typeof createOrderGuestSchema>;

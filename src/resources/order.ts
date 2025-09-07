@@ -1,11 +1,12 @@
 import { z } from "zod";
 import {
-	orderSchema,
-	orderListSchema,
+	createOrderGuestSchema,
 	createOrderSchema,
-	updateOrderSchema,
 	getOrderSchema,
+	orderListSchema,
+	orderSchema,
 	shippingRatesSchema,
+	updateOrderSchema,
 } from "../schema";
 import { BaseClient } from "../client/base-client";
 
@@ -67,13 +68,26 @@ export class Order extends BaseClient {
 
 	async create({ body }: { body: z.infer<typeof createOrderSchema> }) {
 		const validatedBody = createOrderSchema.parse(body);
-		const url = "/order";
-		const result = await this.request(url, {
+		const result = await this.request("/order", {
 			method: "POST",
 			body: JSON.stringify(validatedBody),
 		}).then((r) => r.json());
 
 		return orderSchema.parse(result);
+	}
+
+	async createGuest({
+		body,
+	}: {
+		body: z.infer<typeof createOrderGuestSchema>;
+	}) {
+		const validatedBody = createOrderGuestSchema.parse(body);
+		const result = await this.unauthenticatedRequest("/public/order", {
+			method: "POST",
+			body: validatedBody,
+		}).then((r) => r.json());
+
+		return;
 	}
 
 	async update({
