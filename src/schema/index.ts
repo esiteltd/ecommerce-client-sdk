@@ -562,6 +562,64 @@ export const createOrderGuestSchema = z.object({
 	}),
 });
 
+export const createOrderGuestResponseSchema = z.object({
+	branch_order: z
+		.object({
+			id: z.string(),
+			branch_id: z.string(),
+			order_id: z.string(),
+			approved: z.boolean(),
+			driver_id: z.null(),
+			created_at: z.string(),
+		})
+		.optional(),
+	order: z.object({
+		id: z.string(),
+		number: z.string(),
+		customer_id: z.string(),
+		address_id: z.string(),
+		currency: z.string(),
+		total_price: z.number(),
+		total_paid: z.number(),
+		shipment_price: z.number(),
+		federal_tax: z.number(),
+		province_tax: z.number(),
+		created_at: z.string(),
+		items_count: z.number(),
+		current_step: z.object({
+			id: z.string(),
+			order_id: z.string(),
+			kind: z.string(),
+			extra: z.string(),
+			created_at: z.string(),
+		}),
+		logs: z.array(
+			z.object({
+				id: z.string(),
+				order_id: z.string(),
+				kind: z.string(),
+				extra: z.string(),
+				created_at: z.string(),
+			}),
+		),
+		items: z.array(
+			z.object({
+				id: z.string(),
+				order_id: z.string(),
+				cart_id: z.string(),
+				product_id: z.string(),
+				product_attribute_id: z.null(),
+				price: z.number(),
+				price_updated_at: z.string(),
+				quantity: z.number(),
+				notes: z.string(),
+				created_at: z.string(),
+			}),
+		),
+	}),
+	payment: z.null(),
+});
+
 export const updateOrderSchema = z.object({
 	status: z.number(),
 	tax: z.number(),

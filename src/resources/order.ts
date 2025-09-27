@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+	createOrderGuestResponseSchema,
 	createOrderGuestSchema,
 	createOrderSchema,
 	getOrderSchema,
@@ -78,16 +79,25 @@ export class Order extends BaseClient {
 
 	async createGuest({
 		body,
+		turnstileToken,
 	}: {
 		body: z.infer<typeof createOrderGuestSchema>;
+		turnstileToken: string;
 	}) {
 		const validatedBody = createOrderGuestSchema.parse(body);
 		const result = await this.unauthenticatedRequest("/public/order", {
 			method: "POST",
 			body: validatedBody,
+			headers: { "x-turnstile-token": turnstileToken },
 		}).then((r) => r.json());
 
-		return;
+		const parsed = createOrderGuestResponseSchema.safeParse(result);
+		if (!parsed.success) {
+			console.error(parsed.error);
+			throw new Error(parsed.error.message);
+		}
+
+		return parsed.data;
 	}
 
 	async update({
