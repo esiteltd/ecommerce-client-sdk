@@ -62,9 +62,9 @@ export class Auth extends BaseClient {
 		turnstileToken: string;
 		address?: z.infer<typeof createAddressSchema>;
 		languages: string[];
-		locale: string;
-		permissionId: string;
-		jobTitle: string;
+		locale: string[];
+		permissionId: string[];
+		jobTitle: string[];
 	}) {
 		const url =
 			"/public/auth/register?" +
