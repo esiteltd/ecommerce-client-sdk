@@ -67,7 +67,7 @@ export class Auth extends BaseClient {
 		jobTitle: string;
 	}) {
 		const url =
-			`/auth/register?` +
+			"/public/auth/register?" +
 			new URLSearchParams({
 				tenant: this.tenant,
 			});
