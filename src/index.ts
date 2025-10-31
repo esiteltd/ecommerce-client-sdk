@@ -4,6 +4,7 @@ import { Branch } from "./resources/branch";
 import { Cart } from "./resources/cart";
 import { Category } from "./resources/category";
 import { Customer } from "./resources/customer";
+import { Menu } from "./resources/menu";
 import { Order } from "./resources/order";
 import { Product } from "./resources/product";
 import { Tenant } from "./resources/tenant";
@@ -19,6 +20,7 @@ export class EcommerceSDK {
 	public readonly customer: Customer;
 	public readonly tenant: Tenant;
 	public readonly branch: Branch;
+	public readonly menu: Menu;
 
 	constructor(config: SDKConfig) {
 		// Initialize all resources with the same config
@@ -31,6 +33,7 @@ export class EcommerceSDK {
 		this.customer = new Customer(config);
 		this.tenant = new Tenant(config);
 		this.branch = new Branch(config);
+		this.menu = new Menu(config);
 	}
 }
 

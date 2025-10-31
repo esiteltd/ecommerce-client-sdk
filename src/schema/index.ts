@@ -217,6 +217,7 @@ export const productListItemSchema = z.object({
 	media_id: z.string().nullable(),
 	media_content_type: z.string().nullable(),
 	media_file_id: z.string().nullable(),
+	cover_media_file_id: z.string().nullable(),
 	category_id: z.string().nullable(),
 	category_title: z.string().nullable(),
 	brand_id: z.string().nullable(),
@@ -277,6 +278,7 @@ export const cartListItemSchema = z.object({
 		disable: z.boolean(),
 		out_of_stock: z.boolean(),
 		reviews_count: z.number(),
+		cover_media_file_id: z.string().nullable(),
 		rating: z.number(),
 		attributes: z.array(
 			z.object({
@@ -497,7 +499,10 @@ export const createOrderSchema = z.object({
 	address_id: z.string().nullable(),
 	payment: z.object({ provider: z.string() }),
 	items: z.array(z.object({ cart_id: z.string() })),
-	shipment: z.object({ service_code: z.string() }),
+	shipment: z.object({
+		service_code: z.string(),
+		provider: z.literal("canada-post"),
+	}),
 });
 
 export const createOrderGuestSchema = z.object({
@@ -673,6 +678,7 @@ export const queryFavoritesSchema = z.object({
 			product_id: z.string().uuid(),
 			product_attribute_id: z.string().uuid().nullable(),
 			product_cover_media_id: z.string().uuid(),
+			cover_media_file_id: z.string().uuid(),
 			price: z.number(),
 			sku: z.string(),
 			slug: z.string(),
@@ -753,6 +759,23 @@ export const branchListSchema = z.object({
 	total: z.number(),
 });
 
+export const menuListItemSchema = z.object({
+	id: z.string(),
+	title: z.string(),
+	parent_id: z.string().nullable(),
+	image_media_id: z.string().nullable(),
+	url: z.string(),
+	vorder: z.number().nullable(),
+	target: z.string(),
+});
+
+export const menuListSchema = z.object({
+	items: z.array(menuListItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
 // TGS schema
 export const tgsGenerateSchema = z.object({ token: z.string() });
 
@@ -776,3 +799,13 @@ export type BranchListItem = z.infer<typeof branchListItemSchema>;
 export type BranchList = z.infer<typeof branchListSchema>;
 
 export type CreateOrderGuest = z.infer<typeof createOrderGuestSchema>;
+
+export type MenuListItem = z.infer<typeof menuListItemSchema>;
+export type MenuList = z.infer<typeof menuListSchema>;
+
+export type Review = z.infer<typeof reviewSchema>;
+export type ReviewList = z.infer<typeof queryReviewSchema>;
+
+export type Media = z.infer<typeof mediaSchema>;
+
+export type LoginResponse = z.infer<typeof loginResponseSchema>;

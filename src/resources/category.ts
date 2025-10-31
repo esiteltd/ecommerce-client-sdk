@@ -10,7 +10,7 @@ export class Category extends BaseClient {
 	}) {
 		const url = `/public/category?` + objectToURLSearchParams(query);
 
-		const result = await this.request(url, {
+		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
 

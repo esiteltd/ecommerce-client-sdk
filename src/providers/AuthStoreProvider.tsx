@@ -1,5 +1,4 @@
 "use client";
-
 import React, {
 	type ReactNode,
 	createContext,
@@ -19,11 +18,9 @@ export const AuthStoreContext = createContext<AuthStoreApi | undefined>(
 function getDeviceIdentifier(): string {
 	// Always return empty string during SSR
 	if (typeof window === "undefined") return "";
-
 	try {
 		const cached = localStorage.getItem("device_identifier");
 		if (cached) return cached;
-
 		const newToken = v4();
 		localStorage.setItem("device_identifier", newToken);
 		return newToken;
@@ -41,7 +38,6 @@ let globalRef: AuthStoreApi | null = null;
 
 export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 	const storeRef = useRef<AuthStoreApi | null>(null);
-
 	if (!storeRef.current) {
 		storeRef.current = createAuthStore({
 			deviceToken: getDeviceIdentifier(),
@@ -54,7 +50,6 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		});
 		globalRef = storeRef.current;
 	}
-
 	return (
 		<AuthStoreContext.Provider value={storeRef.current}>
 			{children}
@@ -73,6 +68,23 @@ export function getDeviceToken(): string | null {
 	return globalRef?.getState().deviceToken ?? getDeviceIdentifier();
 }
 
+export function getRefreshToken(): string | null {
+	if (typeof window === "undefined") return null;
+	return globalRef?.getState().refreshToken ?? null;
+}
+
+/**
+ * Set both access token and refresh token globally
+ * Used by the SDK to update tokens after refresh
+ */
+export function setTokens(accessToken: string, refreshToken: string): void {
+	if (typeof window === "undefined") {
+		console.warn("setTokens called during SSR, skipping");
+		return;
+	}
+	globalRef?.getState().setTokens(accessToken, refreshToken);
+}
+
 // Should be removed from the code as noted in your original comment
 export function getExternalUserId(): string | null {
 	if (typeof window === "undefined") return null;
@@ -87,10 +99,8 @@ export function getCustomerId(): string | null {
 
 export const useAuthStore = <T,>(selector: (store: AuthStore) => T): T => {
 	const authStoreContext = useContext(AuthStoreContext);
-
 	if (!authStoreContext) {
 		throw new Error(`useAuthStore must be used within AuthStoreProvider`);
 	}
-
 	return useStore(authStoreContext, selector);
 };

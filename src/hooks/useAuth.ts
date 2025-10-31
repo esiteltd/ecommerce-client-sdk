@@ -67,10 +67,10 @@ export function useAuth(sdk: EcommerceSDK) {
 
 	const logout = useCallback(async () => {
 		try {
+			clearAuth();
 			if (accessToken) {
 				await sdk.auth.logout();
 			}
-			clearAuth();
 		} catch (error) {
 			console.error("Logout failed:", error);
 			clearAuth();

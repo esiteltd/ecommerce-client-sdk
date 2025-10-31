@@ -3,6 +3,17 @@ import { createAddressSchema, loginResponseSchema } from "../schema";
 import { BaseClient } from "../client/base-client";
 
 export class Auth extends BaseClient {
+	async refreshToken({ refreshToken }: { refreshToken: string }) {
+		const response = await this.unauthenticatedRequest(
+			`${this.authUrl}/refresh`,
+			{ method: "POST", body: { refresh: refreshToken } },
+		);
+
+		const { access_token, refresh_token: newRefreshToken } =
+			await response.json();
+
+		return { access_token, newRefreshToken };
+	}
 	async login({
 		username,
 		password,
@@ -12,16 +23,16 @@ export class Auth extends BaseClient {
 		password: string;
 		turnstileToken: string;
 	}) {
-		const result = await this.unauthenticatedRequest("/auth/login", {
+		const result = await this.unauthenticatedRequest("/public/auth/login", {
 			method: "POST",
 			headers: {
 				"x-turnstile-token": turnstileToken,
 			},
-			body: JSON.stringify({
+			body: {
 				username,
 				password,
 				tenant: this.tenant,
-			}),
+			},
 		}).then((v) => v.json());
 
 		return loginResponseSchema.parse(result);
@@ -50,7 +61,7 @@ export class Auth extends BaseClient {
 		password: string;
 		turnstileToken: string;
 		address?: z.infer<typeof createAddressSchema>;
-		languages: string;
+		languages: string[];
 		locale: string;
 		permissionId: string;
 		jobTitle: string;
@@ -67,7 +78,7 @@ export class Auth extends BaseClient {
 				"x-turnstile-token": turnstileToken,
 				"x-api-tenant": this.tenant,
 			},
-			body: JSON.stringify({
+			body: {
 				firstName: firstName,
 				lastName: lastName,
 				email,
@@ -81,7 +92,7 @@ export class Auth extends BaseClient {
 					profilePic: [""],
 					locale,
 				},
-			}),
+			},
 		});
 
 		if (response.status === 200) {

@@ -23,7 +23,7 @@ export class Order extends BaseClient {
 		const url = "/shipping/canada-post/rs/ship/price";
 		const result = await this.request(url, {
 			method: "POST",
-			body: JSON.stringify({
+			body: {
 				destination: {
 					...body,
 				},
@@ -34,7 +34,7 @@ export class Order extends BaseClient {
 					height: 1.1,
 				},
 				weight_kg: 1.1,
-			}),
+			},
 		}).then((r) => r.json());
 
 		if (result.error) {
@@ -71,7 +71,7 @@ export class Order extends BaseClient {
 		const validatedBody = createOrderSchema.parse(body);
 		const result = await this.request("/order", {
 			method: "POST",
-			body: JSON.stringify(validatedBody),
+			body: validatedBody,
 		}).then((r) => r.json());
 
 		return orderSchema.parse(result);
@@ -111,7 +111,7 @@ export class Order extends BaseClient {
 		const url = `/order/${orderId}`;
 		const result = await this.request(url, {
 			method: "PUT",
-			body: JSON.stringify(validatedBody),
+			body: validatedBody,
 		}).then((r) => r.json());
 
 		return orderSchema.parse(result);

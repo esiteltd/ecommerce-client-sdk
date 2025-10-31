@@ -18,7 +18,8 @@ export class Product extends BaseClient {
 		query: { lang: string };
 		productId: string;
 	}) {
-		const url = `/public/product/${productId}?` + new URLSearchParams(query);
+		const url =
+			`/public/product/${productId}?` + new URLSearchParams(query);
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
@@ -33,7 +34,8 @@ export class Product extends BaseClient {
 		query: { lang: string };
 		slug: string;
 	}) {
-		const url = `/public/product/slug/${slug}?` + new URLSearchParams(query);
+		const url =
+			`/public/product/slug/${slug}?` + new URLSearchParams(query);
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
@@ -78,7 +80,7 @@ export class Product extends BaseClient {
 		const url = `/product/${params.id}/rating`;
 		const result = await this.request(url, {
 			method: "POST",
-			body: JSON.stringify(body),
+			body: body,
 		}).then((r) => r.json());
 
 		return result;
@@ -92,12 +94,12 @@ export class Product extends BaseClient {
 		query: { page: number; size: number };
 	}) {
 		const url =
-			`/product/${params.id}/rating?` +
+			`/public/product/${params.id}/rating?` +
 			new URLSearchParams({
 				page: query.page.toString(),
 				size: query.size.toString(),
 			});
-		const result = await this.request(url, {
+		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
 
@@ -150,7 +152,7 @@ export class Product extends BaseClient {
 			const url = `/product/${productId}/favorite/${faveId}`;
 			await this.request(url, {
 				method: "DELETE",
-				body: JSON.stringify(validatedBody),
+				body: validatedBody,
 			}).then((r) => r.json());
 
 			return;
@@ -167,7 +169,7 @@ export class Product extends BaseClient {
 			const url = `/product/${productId}/favorite`;
 			await this.request(url, {
 				method: "POST",
-				body: JSON.stringify(validatedBody),
+				body: validatedBody,
 			}).then((r) => r.json());
 
 			return;

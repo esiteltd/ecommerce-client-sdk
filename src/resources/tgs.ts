@@ -3,10 +3,10 @@ import { BaseClient } from "../client/base-client";
 
 export class TGS extends BaseClient {
 	async generate({ device_identifier }: { device_identifier: string }) {
-		const url = "/tgs";
-		const result = await this.request(url, {
+		const url = "/public/tgs";
+		const result = await this.unauthenticatedRequest(url, {
 			method: "POST",
-			body: JSON.stringify({ device_identifier }),
+			body: { device_identifier },
 		}).then((r) => r.json());
 
 		return tgsGenerateSchema.parse(result);

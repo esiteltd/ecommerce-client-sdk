@@ -61,11 +61,11 @@ export class Customer extends BaseClient {
 			headers: {
 				Authorization: "Bearer " + headers.authorization,
 			},
-			body: JSON.stringify({
+			body: {
 				...validatedBody,
 				// TODO: Replace this with the actual value
 				tenant_id: null,
-			}),
+			},
 		}).then((r) => r.json());
 
 		return customerSchema.parse(result);
@@ -82,7 +82,7 @@ export class Customer extends BaseClient {
 		const url = `/customer/${customerId}`;
 		const result = await this.request(url, {
 			method: "PUT",
-			body: JSON.stringify(validatedBody),
+			body: validatedBody,
 		}).then((r) => r.json());
 
 		return customerSchema.parse(result);
@@ -121,7 +121,7 @@ export class Customer extends BaseClient {
 		const url = `/customer/${this.customerId}/address`;
 		const result = await this.request(url, {
 			method: "POST",
-			body: JSON.stringify(validatedBody),
+			body: validatedBody,
 		}).then((r) => r.json());
 
 		return addressSchema.parse(result);
@@ -140,7 +140,7 @@ export class Customer extends BaseClient {
 		const url = `/customer/${customerId}/address/${addressId}`;
 		const result = await this.request(url, {
 			method: "PUT",
-			body: JSON.stringify(validatedBody),
+			body: validatedBody,
 		}).then((r) => r.json());
 
 		return addressSchema.parse(result);

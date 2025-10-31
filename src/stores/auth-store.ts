@@ -23,6 +23,7 @@ type AuthActions = {
 		deviceToken?: string;
 	}) => void;
 	setCustomerData: (data: Customer) => void;
+	setTokens: (accessToken: string, refreshToken: string) => void;
 	clearAuth: () => void;
 	isTokenExpired: () => boolean;
 };
@@ -45,6 +46,11 @@ export function createAuthStore(initState: AuthState) {
 						deviceToken: data.deviceToken,
 					}),
 				setCustomerData: (data) => set({ customer: data }),
+				setTokens: (accessToken: string, refreshToken: string) =>
+					set({
+						accessToken,
+						refreshToken,
+					}),
 				clearAuth: () =>
 					set({
 						accessToken: null,
@@ -56,8 +62,8 @@ export function createAuthStore(initState: AuthState) {
 					}),
 				isTokenExpired: () => {
 					const state = get();
-					if (!state.accessTokenExpiration) return true;
-					return Date.now() >= state.accessTokenExpiration;
+					if (!state.accessTokenExpiration) return false;
+					return Date.now() >= state.accessTokenExpiration * 1000;
 				},
 			}),
 			{

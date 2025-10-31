@@ -25,7 +25,7 @@ export class Cart extends BaseClient {
 
 		const validatedBody = upsertCartSchema.parse(body);
 		const url = "/public/cart";
-		await this.request(url, {
+		await this.unauthenticatedRequest(url, {
 			method: "POST",
 			body: {
 				...validatedBody,
@@ -56,7 +56,7 @@ export class Cart extends BaseClient {
 		const url =
 			"/public/cart?" +
 			objectToURLSearchParams({ device_token: this.deviceToken, locale });
-		const result = await this.request(url, {
+		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
 
@@ -77,7 +77,7 @@ export class Cart extends BaseClient {
 
 	async removeItem({ cartItemId }: { cartItemId: string }) {
 		const url = `/public/cart/${cartItemId}`;
-		await this.request(url, {
+		await this.unauthenticatedRequest(url, {
 			method: "DELETE",
 			body: {
 				device_token: this.deviceToken,

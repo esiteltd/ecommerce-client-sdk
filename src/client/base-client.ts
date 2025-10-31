@@ -1,12 +1,17 @@
+import { Auth } from "../resources/auth";
+
 export interface SDKConfig {
 	baseUrl: string;
 	tenant: string;
 	timeout?: number;
 	retries?: number;
 	auth?: {
+		authUrl?: string | null;
 		getAccessToken: () => string | null;
+		getRefreshToken: () => string | null;
 		getCustomerId: () => string | null;
 		getDeviceToken: () => string | null;
+		setTokens?: (accessToken: string, refreshToken: string) => void;
 	};
 }
 
@@ -19,6 +24,11 @@ export interface RequestOptions {
 
 export class BaseClient {
 	private config: SDKConfig;
+	private isRefreshing = false;
+	private failedQueue: {
+		resolve: (token: string) => void;
+		reject: (error: any) => void;
+	}[] = [];
 
 	get tenant(): string {
 		return this.config.tenant;
@@ -27,8 +37,13 @@ export class BaseClient {
 	get customerId(): string {
 		return this.config.auth?.getCustomerId() ?? "Not provided";
 	}
+
 	get deviceToken(): string {
 		return this.config.auth?.getDeviceToken() ?? "Not provided";
+	}
+
+	get authUrl(): string | null {
+		return this.config.auth?.authUrl ?? null;
 	}
 
 	constructor(config: SDKConfig) {
@@ -37,6 +52,40 @@ export class BaseClient {
 			retries: 3,
 			...config,
 		};
+	}
+
+	private processQueue = (error: any, token: string | null = null) => {
+		this.failedQueue.forEach((prom) => {
+			if (error) {
+				prom.reject(error);
+			} else {
+				prom.resolve(token!);
+			}
+		});
+		this.failedQueue = [];
+	};
+
+	private async refreshAccessToken(): Promise<string> {
+		try {
+			const refreshToken = this.config.auth?.getRefreshToken?.();
+
+			if (!refreshToken) {
+				throw new SDKError("No refresh token available", 401);
+			}
+
+			// Use Auth class to refresh token
+			const auth = new Auth(this.config);
+			const { access_token, newRefreshToken } = await auth.refreshToken({
+				refreshToken,
+			});
+
+			// Update tokens in config
+			this.config.auth?.setTokens?.(access_token, newRefreshToken);
+
+			return access_token;
+		} catch (error) {
+			throw error;
+		}
 	}
 
 	protected async unauthenticatedRequest(
@@ -52,8 +101,13 @@ export class BaseClient {
 			authentication: true,
 		},
 	): Promise<Response> {
-		const url = `${this.config.baseUrl}${endpoint}`;
+		if (options?.authentication == null) {
+			options.authentication = true;
+		}
 
+		const url = endpoint.startsWith("https")
+			? endpoint
+			: `${this.config.baseUrl}${endpoint}`;
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 			"x-api-tenant": this.config.tenant,
@@ -65,7 +119,6 @@ export class BaseClient {
 			if (deviceToken != null) {
 				headers["x-device-id"] = deviceToken;
 			}
-
 			if (options.authentication) {
 				headers["Authorization"] =
 					`Bearer ${this.config.auth.getAccessToken()}`;
@@ -86,7 +139,52 @@ export class BaseClient {
 
 		try {
 			console.log("➡️", url);
-			const response = await this.fetchWithRetry(url, requestInit);
+			let response = await this.fetchWithRetry(url, requestInit);
+
+			// Handle 401 Unauthorized - attempt token refresh
+			if (response.status === 401 && options.authentication) {
+				// Prevent infinite loops - don't refresh if already refreshing the token
+				if (endpoint.includes("/refresh")) {
+					throw new SDKError("Token refresh failed", 401);
+				}
+
+				// If already refreshing, queue the request
+				if (this.isRefreshing) {
+					return new Promise((resolve, reject) => {
+						this.failedQueue.push({
+							resolve: (token: string) => {
+								requestInit.headers = {
+									...requestInit.headers,
+									Authorization: `Bearer ${token}`,
+								};
+								this.fetchWithRetry(url, requestInit)
+									.then(resolve)
+									.catch(reject);
+							},
+							reject: (err: any) => {
+								reject(err);
+							},
+						});
+					});
+				}
+
+				this.isRefreshing = true;
+
+				try {
+					const newAccessToken = await this.refreshAccessToken();
+					this.processQueue(null, newAccessToken);
+					requestInit.headers = {
+						...requestInit.headers,
+						Authorization: `Bearer ${newAccessToken}`,
+					};
+					response = await this.fetchWithRetry(url, requestInit);
+				} catch (refreshError) {
+					this.processQueue(refreshError, null);
+					throw refreshError;
+				} finally {
+					this.isRefreshing = false;
+				}
+			}
 
 			if (!response.ok) {
 				throw new SDKError(
