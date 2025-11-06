@@ -20,7 +20,7 @@ export class Product extends BaseClient {
 	}) {
 		const url =
 			`/public/product/${productId}?` + new URLSearchParams(query);
-		const result = await this.request(url, {
+		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
 
@@ -36,7 +36,7 @@ export class Product extends BaseClient {
 	}) {
 		const url =
 			`/public/product/slug/${slug}?` + new URLSearchParams(query);
-		const result = await this.request(url, {
+		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
 
@@ -56,7 +56,7 @@ export class Product extends BaseClient {
 	}) {
 		const url = "/public/product?" + objectToURLSearchParams(query);
 
-		const result = await this.request(url, {
+		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
 

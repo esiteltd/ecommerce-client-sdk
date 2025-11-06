@@ -40,7 +40,7 @@ export class Cart extends BaseClient {
 
 		const validatedBody = upsertCartSchema.parse(body);
 		const url = "/public/cart/add";
-		await this.request(url, {
+		await this.unauthenticatedRequest(url, {
 			method: "POST",
 			body: {
 				...validatedBody,
