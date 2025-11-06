@@ -183,15 +183,19 @@ export class Product extends BaseClient {
 			locale: string;
 		}) => {
 			const url = `/product/${productId}/favorite?locale=${locale}`;
-			const result = await this.request(url, {
-				method: "GET",
-			})
-				.then((r) => r.json())
-				.then((d) => d.id)
-				.then((id) => (typeof id === "string" ? id : null))
-				.catch(() => null);
+			try {
+				const result = await this.request(url, {
+					method: "GET",
+				})
+					.then((r) => r.json())
+					.then((d) => d.id)
+					.then((id) => (typeof id === "string" ? id : null))
+					.catch(() => null);
 
-			return result;
+				return result;
+			} catch {
+				return null;
+			}
 		},
 	};
 }
