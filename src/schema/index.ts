@@ -427,7 +427,7 @@ export const orderListSchema = z.object({
 					z.object({
 						id: z.string(),
 						order_id: z.string(),
-						cart_id: z.string(),
+						cart_id: z.string().nullable(),
 						product_id: z.string(),
 						product_attribute_id: z.string().nullable(),
 						price: z.number(),
@@ -481,8 +481,8 @@ export const getOrderSchema = z.object({
 	items: z.array(
 		z.object({
 			id: z.string().uuid(),
-			order_id: z.string().uuid(),
-			cart_id: z.string().uuid(),
+			order_id: z.string(),
+			cart_id: z.string().nullable(),
 			product_id: z.string().uuid(),
 			product_attribute_id: z.string().uuid().nullable(),
 			price: z.number(),
