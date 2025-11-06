@@ -341,7 +341,7 @@ export const upsertCartSchema = z.object({
 export const orderItemSchema = z.object({
 	id: z.string(),
 	order_id: z.string(),
-	cart_id: z.string(),
+	cart_id: z.string().nullable(),
 	product_id: z.string(),
 	product_attribute_id: z.string().nullable(),
 	price: z.number(),
@@ -354,7 +354,7 @@ export const orderItemSchema = z.object({
 export const getOrderItemSchema = z.object({
 	id: z.string(),
 	order_id: z.string(),
-	cart_id: z.string(),
+	cart_id: z.string().nullable(),
 	product_id: z.string(),
 	product_attribute_id: z.string().nullable(),
 	price: z.number(),
