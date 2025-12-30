@@ -759,6 +759,23 @@ export const branchListSchema = z.object({
 	total: z.number(),
 });
 
+export const brandListItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string().nullable().optional(),
+	media_id: z.string().nullable().optional(),
+	title: z.string(),
+	description: z.string().nullable().optional(),
+	deleted: z.boolean().optional(),
+	created_at: z.string().optional(),
+});
+
+export const brandListSchema = z.object({
+	items: z.array(brandListItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
 export const menuListItemSchema = z.object({
 	id: z.string(),
 	title: z.string(),
@@ -809,3 +826,37 @@ export type ReviewList = z.infer<typeof queryReviewSchema>;
 export type Media = z.infer<typeof mediaSchema>;
 
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
+
+export type BrandListItem = z.infer<typeof brandListItemSchema>;
+export type BrandList = z.infer<typeof brandListSchema>;
+
+// Supplier schemas
+export const supplierLocaleSchema = z.object({
+	id: z.string().optional(),
+	supplier_id: z.string().optional(),
+	lang: z.string().optional(),
+	title: z.string().optional(),
+	description: z.string().optional(),
+});
+
+export const supplierListItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string().optional(),
+	metadata: z.string().nullable().optional(),
+	image: z.string().nullable().optional(),
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+	locales: z.array(supplierLocaleSchema).optional().default([]),
+});
+
+export const supplierListSchema = z.object({
+	items: z.array(supplierListItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type SupplierLocale = z.infer<typeof supplierLocaleSchema>;
+export type SupplierListItem = z.infer<typeof supplierListItemSchema>;
+export type SupplierList = z.infer<typeof supplierListSchema>;

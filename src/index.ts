@@ -1,12 +1,14 @@
 import { SDKConfig } from "./client/base-client";
 import { Auth } from "./resources/auth";
 import { Branch } from "./resources/branch";
+import { Brand } from "./resources/brand";
 import { Cart } from "./resources/cart";
 import { Category } from "./resources/category";
 import { Customer } from "./resources/customer";
 import { Menu } from "./resources/menu";
 import { Order } from "./resources/order";
 import { Product } from "./resources/product";
+import { Supplier } from "./resources/supplier";
 import { Tenant } from "./resources/tenant";
 import { TGS } from "./resources/tgs";
 
@@ -20,6 +22,8 @@ export class EcommerceSDK {
 	public readonly customer: Customer;
 	public readonly tenant: Tenant;
 	public readonly branch: Branch;
+	public readonly brand: Brand;
+	public readonly supplier: Supplier;
 	public readonly menu: Menu;
 
 	constructor(config: SDKConfig) {
@@ -33,6 +37,8 @@ export class EcommerceSDK {
 		this.customer = new Customer(config);
 		this.tenant = new Tenant(config);
 		this.branch = new Branch(config);
+		this.brand = new Brand(config);
+		this.supplier = new Supplier(config);
 		this.menu = new Menu(config);
 	}
 }
