@@ -52,6 +52,9 @@ export class Product extends BaseClient {
 			size: number;
 			category_id?: string;
 			title?: string;
+			brand_id?: string;
+			min_price?: number;
+			max_price?: number;
 		};
 	}) {
 		const url = "/public/product?" + objectToURLSearchParams(query);

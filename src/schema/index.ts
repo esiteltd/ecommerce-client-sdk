@@ -793,8 +793,25 @@ export const menuListSchema = z.object({
 	total: z.number(),
 });
 
+
 // TGS schema
 export const tgsGenerateSchema = z.object({ token: z.string() });
+
+export const loginRequestSchema = z.object({
+	email: z.string().email(),
+	password: z.string(),
+});
+
+export const registerRequestSchema = z.object({
+	email: z.string().email(),
+	password: z.string(),
+	username: z.string(),
+	firstName: z.string(),
+	lastName: z.string(),
+});
+
+export type LoginRequest = z.infer<typeof loginRequestSchema>;
+export type RegisterRequest = z.infer<typeof registerRequestSchema>;
 
 // Type exports
 export type AddressFormData = z.infer<typeof addressFormSchema>;
