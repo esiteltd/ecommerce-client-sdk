@@ -505,31 +505,27 @@ export const createOrderSchema = z.object({
 	}),
 });
 
+// Payment schema for non-POS providers
+const nonPosPaymentSchema = z.object({
+	provider: z.enum(["stripe", "zaincash", "switchpayment"]),
+	payment_transaction_id: z.string().optional(),
+});
+
+// Payment schema for POS provider (requires transaction_id)
+const posPaymentSchema = z.object({
+	provider: z.literal("pos"),
+	payment_transaction_id: z.string(),
+});
+
+// Union of payment schemas
+const guestOrderPaymentSchema = z.union([nonPosPaymentSchema, posPaymentSchema]);
+
 export const createOrderGuestSchema = z.object({
-	api_key: z.string().min(1),
+	api_key: z.string().min(1).optional(),
 	branch_id: z.string().uuid(),
 	locale: z.string().min(1),
 	address_id: z.string().uuid().optional(),
-	payment: z
-		.object({
-			provider: z.enum(["stripe", "zaincash", "switchpayment", "pos"]),
-			payment_transaction_id: z.string().optional(),
-		})
-		.refine(
-			(data) => {
-				// payment_transaction_id is required only for 'pos' provider
-				if (data.provider === "pos") {
-					return data.payment_transaction_id !== undefined;
-				}
-				return true;
-			},
-			{
-				message:
-					"payment_transaction_id is required when provider is 'pos'",
-				path: ["payment_transaction_id"],
-			},
-		)
-		.optional(),
+	payment: guestOrderPaymentSchema.optional(),
 	shipment: z
 		.object({
 			service_code: z.string(),
