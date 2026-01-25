@@ -528,7 +528,8 @@ export const createOrderGuestSchema = z.object({
 	payment: guestOrderPaymentSchema.optional(),
 	shipment: z
 		.object({
-			service_code: z.string(),
+			provider: z.string().min(1),
+			service_code: z.string().optional(),
 		})
 		.optional(),
 	items: z

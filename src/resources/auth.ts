@@ -60,7 +60,7 @@ export class Auth extends BaseClient {
 		lastName: string;
 		email: string;
 		password: string;
-		username: string;
+		username?: string; // Optional - will use email if not provided
 		turnstileToken: string;
 		address?: z.infer<typeof createAddressSchema>;
 		languages: string[];
@@ -85,7 +85,8 @@ export class Auth extends BaseClient {
 				lastName: lastName,
 				email,
 				password,
-				username: username,
+				// Use email as username if not provided (backend expects email format)
+				username: username || email,
 				languages,
 				address,
 				attributes: {

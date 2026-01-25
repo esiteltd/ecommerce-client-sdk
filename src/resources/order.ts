@@ -21,7 +21,8 @@ export class Order extends BaseClient {
 		};
 	}) {
 		const url = "/shipping/canada-post/rs/ship/price";
-		const result = await this.request(url, {
+		// Use unauthenticated request since this is called during guest checkout
+		const result = await this.unauthenticatedRequest(url, {
 			method: "POST",
 			body: {
 				destination: {
@@ -85,15 +86,18 @@ export class Order extends BaseClient {
 		turnstileToken: string;
 	}) {
 		const validatedBody = createOrderGuestSchema.parse(body);
-		const result = await this.unauthenticatedRequest("/public/order", {
+		const response = await this.unauthenticatedRequest("/public/order", {
 			method: "POST",
 			body: validatedBody,
 			headers: { "x-turnstile-token": turnstileToken },
-		}).then((r) => r.json());
+		});
+		
+		const result = await response.json();
 
 		const parsed = createOrderGuestResponseSchema.safeParse(result);
 		if (!parsed.success) {
-			console.error(parsed.error);
+			console.error("Response parsing failed:", parsed.error);
+			console.error("Raw response:", result);
 			throw new Error(parsed.error.message);
 		}
 
