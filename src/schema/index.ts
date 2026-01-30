@@ -61,7 +61,7 @@ export const loginResponseSchema = z.object({
 // Address schemas
 export const addressFormSchema = z.object({
 	title: z.string().min(1, "Required"),
-	country: z.string().min(1, "Required"),
+	country: z.string().optional(),
 	state: z.string().min(1, "Required"),
 	city: z.string().min(1, "Required"),
 	address1: z.string().min(1, "Required"),
@@ -69,43 +69,51 @@ export const addressFormSchema = z.object({
 	phonenumber: phoneSchema,
 	is_default: z.boolean().optional(),
 	postal_code: z.string().optional(),
+	longitude: z.number().nullable().optional(),
+	latitude: z.number().nullable().optional(),
 });
 
 export const addressSchema = z.object({
 	id: z.string(),
 	title: z.string(),
-	country: z.string(),
+	country: z.string().optional(),
 	state: z.string(),
 	city: z.string(),
 	address1: z.string(),
-	address2: z.string(),
+	address2: z.string().optional(),
 	phonenumber: phoneSchema,
 	is_default: z.boolean(),
-	postal_code: z.string(),
+	postal_code: z.string().optional(),
+	longitude: z.number().nullable().optional(),
+	latitude: z.number().nullable().optional(),
 });
 
 export const createAddressSchema = z.object({
 	title: z.string(),
-	country: z.string(),
+	country: z.string().optional(),
 	state: z.string(),
 	city: z.string(),
 	address1: z.string(),
-	address2: z.string(),
+	address2: z.string().optional(),
 	phonenumber: phoneSchema,
 	is_default: z.boolean(),
-	postal_code: z.string(),
+	postal_code: z.string().optional(),
+	longitude: z.number().nullable().optional(),
+	latitude: z.number().nullable().optional(),
 });
 
 export const updateAddressSchema = z.object({
 	title: z.string(),
-	country: z.string(),
+	country: z.string().optional(),
 	state: z.string(),
 	city: z.string(),
 	address1: z.string(),
-	address2: z.string(),
+	address2: z.string().optional(),
 	phonenumber: phoneSchema,
-	postal_code: z.string(),
+	postal_code: z.string().optional(),
 	is_default: z.boolean(),
+	longitude: z.number().nullable().optional(),
+	latitude: z.number().nullable().optional(),
 });
 
 // Customer schemas
@@ -131,6 +139,7 @@ export const customerListSchema = z.object({
 });
 
 export const createCustomerSchema = z.object({
+	tenant_id: z.string().optional(),
 	external_user_id: z.string(),
 	firstname: z.string(),
 	lastname: z.string(),
@@ -138,10 +147,12 @@ export const createCustomerSchema = z.object({
 	phonenumber: z.string(),
 	email: z.string(),
 	gender: z.number(),
-	date_of_birth: z.string(),
+	date_of_birth: z.string().datetime().optional(),
 });
 
-export const updateCustomerSchema = createCustomerSchema;
+export const updateCustomerSchema = createCustomerSchema
+	.omit({ tenant_id: true })
+	.partial();
 
 // Product schemas
 export const productSchema = z.object({
@@ -371,15 +382,25 @@ export const orderPaymentSchema = z.object({
 	provider: z.string(),
 	amount: z.number(),
 	created_at: z.string(),
+	// Provider-agnostic schema - different providers return different fields
 	provider_extra_information: z.object({
-		id: z.string(),
-		payment_id: z.string(),
-		url: z.string(),
-		payment_status: z.string(),
-		session_status: z.string(),
-		session_expires_at: z.number(),
-		session_created_at: z.number(),
-	}),
+		id: z.string().optional(),
+		payment_id: z.string().optional(),
+		url: z.string().optional(),
+		// Stripe-specific fields (optional)
+		payment_status: z.string().optional(),
+		session_status: z.string().optional(),
+		session_expires_at: z.number().optional(),
+		session_created_at: z.number().optional(),
+		// ZainCash-specific fields (optional)
+		transaction_status: z.string().optional(),
+		created_at: z.string().optional(),
+		// SwitchPayment-specific fields (optional)
+		result_url: z.string().optional(),
+		integrity: z.string().optional(),
+		checkout_status: z.string().optional(),
+		timestamp: z.string().optional(),
+	}).nullable().optional(),
 });
 
 export const orderSchema = z.object({
@@ -391,13 +412,13 @@ export const orderSchema = z.object({
 		total_price: z.number(),
 		total_paid: z.number(),
 		created_at: z.string(),
-		payment_id: z.string(),
-		payment_provider: z.string(),
-		payment_status: z.string(),
-		payment_created_at: z.string(),
+		payment_id: z.string().nullable().optional(),
+		payment_provider: z.string().nullable().optional(),
+		payment_status: z.string().nullable().optional(),
+		payment_created_at: z.string().nullable().optional(),
 		items: z.array(orderItemSchema),
 	}),
-	payment: orderPaymentSchema,
+	payment: orderPaymentSchema.nullable().optional(),
 });
 
 export const orderListSchema = z.object({
@@ -496,13 +517,13 @@ export const getOrderSchema = z.object({
 
 export const createOrderSchema = z.object({
 	locale: z.string(),
-	address_id: z.string().nullable(),
-	payment: z.object({ provider: z.string() }),
+	address_id: z.string(),
+	payment: z.object({ provider: z.string() }).optional(),
 	items: z.array(z.object({ cart_id: z.string() })),
 	shipment: z.object({
 		service_code: z.string(),
-		provider: z.literal("canada-post"),
-	}),
+		provider: z.string(),
+	}).optional(),
 });
 
 // Payment schema for non-POS providers
