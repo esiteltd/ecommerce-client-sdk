@@ -543,13 +543,13 @@ const guestOrderPaymentSchema = z.union([nonPosPaymentSchema, posPaymentSchema])
 
 export const createOrderGuestSchema = z.object({
 	api_key: z.string().min(1).optional(),
-	branch_id: z.string().uuid(),
+	branch_id: z.string().uuid().optional(), // Optional per Postman API spec
 	locale: z.string().min(1),
 	address_id: z.string().uuid().optional(),
 	payment: guestOrderPaymentSchema.optional(),
 	shipment: z
 		.object({
-			provider: z.string().min(1),
+			provider: z.string().min(1).optional(),
 			service_code: z.string().optional(),
 		})
 		.optional(),
@@ -580,6 +580,7 @@ export const createOrderGuestSchema = z.object({
 		address2: z.string().optional(),
 		postal_code: z.string().optional(),
 		phonenumber: phoneSchema,
+		is_default: z.boolean().optional(),
 		longitude: z.number(),
 		latitude: z.number(),
 	}),
@@ -592,10 +593,11 @@ export const createOrderGuestResponseSchema = z.object({
 			branch_id: z.string(),
 			order_id: z.string(),
 			approved: z.boolean(),
-			driver_id: z.null(),
+			driver_id: z.string().nullable(),
 			created_at: z.string(),
 		})
-		.optional(),
+		.optional()
+		.nullable(),
 	order: z.object({
 		id: z.string(),
 		number: z.string(),
@@ -604,18 +606,18 @@ export const createOrderGuestResponseSchema = z.object({
 		currency: z.string(),
 		total_price: z.number(),
 		total_paid: z.number(),
-		shipment_price: z.number(),
-		federal_tax: z.number(),
-		province_tax: z.number(),
+		shipment_price: z.number().optional().default(0),
+		federal_tax: z.number().optional().default(0),
+		province_tax: z.number().optional().default(0),
 		created_at: z.string(),
-		items_count: z.number(),
+		items_count: z.number().optional(),
 		current_step: z.object({
 			id: z.string(),
 			order_id: z.string(),
 			kind: z.string(),
 			extra: z.string(),
 			created_at: z.string(),
-		}),
+		}).optional(),
 		logs: z.array(
 			z.object({
 				id: z.string(),
@@ -624,23 +626,49 @@ export const createOrderGuestResponseSchema = z.object({
 				extra: z.string(),
 				created_at: z.string(),
 			}),
-		),
+		).optional().default([]),
 		items: z.array(
 			z.object({
 				id: z.string(),
 				order_id: z.string(),
-				cart_id: z.string(),
+				cart_id: z.string().nullable(),
 				product_id: z.string(),
-				product_attribute_id: z.null(),
+				product_attribute_id: z.string().nullable(),
 				price: z.number(),
 				price_updated_at: z.string(),
 				quantity: z.number(),
 				notes: z.string(),
 				created_at: z.string(),
 			}),
-		),
+		).optional().default([]),
 	}),
-	payment: z.null(),
+	// Payment can be null (COD) or an object with payment details
+	payment: z.union([
+		z.null(),
+		z.object({
+			id: z.string(),
+			order_id: z.string(),
+			status: z.number(),
+			provider: z.string(),
+			amount: z.number(),
+			created_at: z.string(),
+			provider_extra_information: z.object({
+				id: z.string().optional(),
+				payment_id: z.string().optional(),
+				url: z.string().optional(),
+				result_url: z.string().optional(),
+				payment_status: z.string().optional(),
+				session_status: z.string().optional(),
+				session_expires_at: z.number().optional(),
+				session_created_at: z.number().optional(),
+				transaction_status: z.string().optional(),
+				created_at: z.string().optional(),
+				integrity: z.string().optional(),
+				checkout_status: z.string().optional(),
+				timestamp: z.string().optional(),
+			}).nullable().optional(),
+		}),
+	]).nullable().optional(),
 });
 
 export const updateOrderSchema = z.object({
