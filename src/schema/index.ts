@@ -34,18 +34,21 @@ export const authUserSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	username: z.string(),
-	firstName: z.string(),
-	lastName: z.string(),
+	firstName: z.string().nullable().default(""),
+	lastName: z.string().nullable().default(""),
 	email: z.string(),
-	createAt: z.string(),
+	createAt: z.string().nullable().optional(),
 	enabled: z.boolean(),
 	tenant: z.string(),
-	tenantLanguages: z.array(z.string()),
+	tenantLanguages: z.array(z.string()).default([]),
+	roles: z.array(z.string()).optional(),
 	attributes: z.object({
 		permissionId: z.array(z.string()).default([]),
 		jobTitle: z.array(z.string()).default([]),
 		local: z.array(z.string()).default([]),
-	}),
+		locale: z.array(z.string()).default([]),
+		profilePic: z.array(z.string()).default([]),
+	}).default({ permissionId: [], jobTitle: [], local: [], locale: [], profilePic: [] }),
 });
 
 export const loginResponseSchema = z.object({
@@ -54,7 +57,7 @@ export const loginResponseSchema = z.object({
 	access_token_expiration: z.number(),
 	refresh_token_expiration: z.number(),
 	user: authUserSchema,
-	customer: z.lazy(() => customerSchema),
+	customer: z.lazy(() => customerSchema).nullable(),
 	address: z.lazy(() => addressSchema).nullish(),
 });
 
@@ -123,11 +126,15 @@ export const customerSchema = z.object({
 	firstname: z.string(),
 	lastname: z.string(),
 	language: z.string(),
-	// TODO: Remove this once the API is updated
-	phonenumber: z.union([phoneSchema, z.literal("")]),
+	// Phone can be empty string, null, or valid E.164 format
+	phonenumber: z.union([phoneSchema, z.literal(""), z.null()]).transform(v => v ?? ""),
 	email: z.string(),
 	gender: z.number(),
 	date_of_birth: z.string().nullable(),
+	verified: z.boolean().optional(),
+	deleted_at: z.string().nullable().optional(),
+	created_at: z.string().optional(),
+	tenant_id: z.string().nullable().optional(),
 	addresses: z.array(addressSchema).nullish().default([]),
 });
 
@@ -404,18 +411,51 @@ export const orderPaymentSchema = z.object({
 });
 
 export const orderSchema = z.object({
+	branch_order: z
+		.object({
+			id: z.string(),
+			branch_id: z.string(),
+			order_id: z.string(),
+			approved: z.boolean(),
+			driver_id: z.string().nullable(),
+			created_at: z.string(),
+		})
+		.optional()
+		.nullable(),
 	order: z.object({
 		id: z.string(),
+		number: z.string().optional(),
 		customer_id: z.string(),
 		address_id: z.string(),
 		currency: z.string(),
 		total_price: z.number(),
 		total_paid: z.number(),
+		shipment_price: z.number().optional().default(0),
+		federal_tax: z.number().optional().default(0),
+		province_tax: z.number().optional().default(0),
+		canceled: z.boolean().optional(),
 		created_at: z.string(),
 		payment_id: z.string().nullable().optional(),
 		payment_provider: z.string().nullable().optional(),
 		payment_status: z.string().nullable().optional(),
 		payment_created_at: z.string().nullable().optional(),
+		items_count: z.number().optional(),
+		current_step: z.object({
+			id: z.string(),
+			order_id: z.string(),
+			kind: z.string(),
+			extra: z.string(),
+			created_at: z.string(),
+		}).optional(),
+		logs: z.array(
+			z.object({
+				id: z.string(),
+				order_id: z.string(),
+				kind: z.string(),
+				extra: z.string(),
+				created_at: z.string(),
+			}),
+		).optional().default([]),
 		items: z.array(orderItemSchema),
 	}),
 	payment: orderPaymentSchema.nullable().optional(),
@@ -431,10 +471,10 @@ export const orderListSchema = z.object({
 			total_price: z.number(),
 			total_paid: z.number(),
 			created_at: z.string(),
-			payment_id: z.string(),
-			payment_provider: z.string(),
-			payment_status: z.string(),
-			payment_created_at: z.string(),
+			payment_id: z.string().nullable().optional(),
+			payment_provider: z.string().nullable().optional(),
+			payment_status: z.string().nullable().optional(),
+			payment_created_at: z.string().nullable().optional(),
 			items_count: z.number().optional(),
 			current_step: z.object({
 				id: z.string(),
@@ -475,13 +515,13 @@ export const getOrderSchema = z.object({
 	currency: z.string(),
 	total_price: z.number(),
 	total_paid: z.number(),
-	shipment_service_code: z.string(),
+	shipment_service_code: z.string().nullable().optional(),
 	shipment_price: z.number(),
 	created_at: z.string().datetime({ offset: true }),
-	payment_id: z.string().uuid(),
-	payment_provider: z.string(),
-	payment_status: z.string(),
-	payment_created_at: z.string().datetime({ offset: true }),
+	payment_id: z.string().uuid().nullable().optional(),
+	payment_provider: z.string().nullable().optional(),
+	payment_status: z.string().nullable().optional(),
+	payment_created_at: z.string().datetime({ offset: true }).nullable().optional(),
 	items_count: z.number().int(),
 	current_step: z.object({
 		id: z.string().uuid(),
@@ -856,8 +896,12 @@ export const registerRequestSchema = z.object({
 	lastName: z.string(),
 });
 
+// Register now returns the same shape as login (tokens + user + customer)
+export const registerResponseSchema = loginResponseSchema;
+
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type RegisterRequest = z.infer<typeof registerRequestSchema>;
+export type RegisterResponse = z.infer<typeof registerResponseSchema>;
 
 // Type exports
 export type AddressFormData = z.infer<typeof addressFormSchema>;
@@ -905,6 +949,7 @@ export const supplierLocaleSchema = z.object({
 export const supplierListItemSchema = z.object({
 	id: z.string(),
 	tenant_id: z.string().optional(),
+	name: z.string().nullable().optional(),
 	metadata: z.string().nullable().optional(),
 	image: z.string().nullable().optional(),
 	deleted_at: z.string().nullable().optional(),
@@ -923,3 +968,385 @@ export const supplierListSchema = z.object({
 export type SupplierLocale = z.infer<typeof supplierLocaleSchema>;
 export type SupplierListItem = z.infer<typeof supplierListItemSchema>;
 export type SupplierList = z.infer<typeof supplierListSchema>;
+
+// Static Data schemas
+export const staticDataItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	title: z.string().nullable(),
+	image: z.string().nullable().optional(),
+	localized_url: z.string().nullable().optional(),
+	enabled: z.boolean(),
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+});
+
+export const staticDataListSchema = z.object({
+	items: z.array(staticDataItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type StaticDataItem = z.infer<typeof staticDataItemSchema>;
+export type StaticDataList = z.infer<typeof staticDataListSchema>;
+
+// Contact Us schemas
+export const contactUsItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	message: z.string(),
+	name: z.string(),
+	phone: z.string(),
+	email: z.string(),
+	external_user_id: z.string().nullable().optional(),
+	latest_visited_pages: z.array(z.string()).nullable().optional(),
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+});
+
+export const contactUsListSchema = z.object({
+	items: z.array(contactUsItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const createContactUsSchema = z.object({
+	message: z.string(),
+	name: z.string(),
+	phone: z.string(),
+	email: z.string(),
+	latest_visited_pages: z.array(z.string()).optional(),
+});
+
+export type ContactUsItem = z.infer<typeof contactUsItemSchema>;
+export type ContactUsList = z.infer<typeof contactUsListSchema>;
+export type CreateContactUs = z.infer<typeof createContactUsSchema>;
+
+// Post Comment schemas (defined before Post since Post references comments)
+export const postCommentItemSchema: z.ZodType = z.lazy(() =>
+	z.object({
+		id: z.string(),
+		tenant_id: z.string(),
+		message: z.string(),
+		post_id: z.string(),
+		replied_to: z.string().nullable(),
+		replies: z.array(postCommentItemSchema).nullable().optional(),
+		language: z.string().nullable().optional(),
+		external_user_id: z.string().nullable().optional(),
+		deleted_at: z.string().nullable().optional(),
+		updated_at: z.string().optional(),
+		created_at: z.string().optional(),
+	}),
+);
+
+export const postCommentListSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			tenant_id: z.string(),
+			message: z.string(),
+			post_id: z.string(),
+			replied_to: z.string().nullable(),
+			replies: z.unknown().nullable().optional(),
+			language: z.string().nullable().optional(),
+			external_user_id: z.string().nullable().optional(),
+			deleted_at: z.string().nullable().optional(),
+			updated_at: z.string().optional(),
+			created_at: z.string().optional(),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const createPostCommentSchema = z.object({
+	post_id: z.string(),
+	replied_to: z.string().nullable().optional(),
+	language: z.string(),
+	message: z.string(),
+});
+
+export type PostCommentItem = z.infer<typeof postCommentItemSchema>;
+export type PostCommentList = z.infer<typeof postCommentListSchema>;
+export type CreatePostComment = z.infer<typeof createPostCommentSchema>;
+
+// Post Tag schemas
+export const postTagItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	title: z.string().nullable(),
+	enabled: z.boolean(),
+	external_user_id: z.string().nullable().optional(),
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+	posts: z
+		.array(
+			z.object({
+				id: z.string(),
+				tenant_id: z.string(),
+				image: z.string().nullable().optional(),
+				title: z.string().nullable(),
+				description: z.string().nullable().optional(),
+				enabled: z.boolean(),
+				external_user_id: z.string().nullable().optional(),
+				deleted_at: z.string().nullable().optional(),
+				updated_at: z.string().optional(),
+				created_at: z.string().optional(),
+				comments: z.unknown().nullable().optional(),
+				tags: z.unknown().nullable().optional(),
+				categories: z.unknown().nullable().optional(),
+			}),
+		)
+		.nullable()
+		.optional(),
+});
+
+export const postTagListSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			tenant_id: z.string(),
+			title: z.string().nullable(),
+			enabled: z.boolean(),
+			external_user_id: z.string().nullable().optional(),
+			deleted_at: z.string().nullable().optional(),
+			updated_at: z.string().optional(),
+			created_at: z.string().optional(),
+			posts: z.unknown().nullable().optional(),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type PostTagItem = z.infer<typeof postTagItemSchema>;
+export type PostTagList = z.infer<typeof postTagListSchema>;
+
+// Post Category schemas
+export const postCategoryItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	image: z.string().nullable().optional(),
+	title: z.string().nullable(),
+	enabled: z.boolean(),
+	external_user_id: z.string().nullable().optional(),
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+	posts: z
+		.array(
+			z.object({
+				id: z.string(),
+				tenant_id: z.string(),
+				image: z.string().nullable().optional(),
+				title: z.string().nullable(),
+				description: z.string().nullable().optional(),
+				enabled: z.boolean(),
+				external_user_id: z.string().nullable().optional(),
+				deleted_at: z.string().nullable().optional(),
+				updated_at: z.string().optional(),
+				created_at: z.string().optional(),
+				comments: z.unknown().nullable().optional(),
+				tags: z.unknown().nullable().optional(),
+				categories: z.unknown().nullable().optional(),
+			}),
+		)
+		.nullable()
+		.optional(),
+});
+
+export const postCategoryListSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			tenant_id: z.string(),
+			image: z.string().nullable().optional(),
+			title: z.string().nullable(),
+			enabled: z.boolean(),
+			external_user_id: z.string().nullable().optional(),
+			deleted_at: z.string().nullable().optional(),
+			updated_at: z.string().optional(),
+			created_at: z.string().optional(),
+			posts: z.unknown().nullable().optional(),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type PostCategoryItem = z.infer<typeof postCategoryItemSchema>;
+export type PostCategoryList = z.infer<typeof postCategoryListSchema>;
+
+// Post schemas
+export const postItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	image: z.string().nullable().optional(),
+	title: z.string().nullable(),
+	description: z.string().nullable().optional(),
+	enabled: z.boolean(),
+	external_user_id: z.string().nullable().optional(),
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+	comments: z
+		.array(
+			z.object({
+				id: z.string(),
+				tenant_id: z.string(),
+				message: z.string(),
+				post_id: z.string(),
+				replied_to: z.string().nullable(),
+				replies: z
+					.array(
+						z.object({
+							id: z.string(),
+							tenant_id: z.string(),
+							message: z.string(),
+							post_id: z.string(),
+							replied_to: z.string().nullable(),
+							replies: z.unknown().nullable().optional(),
+							language: z.string().nullable().optional(),
+							external_user_id: z.string().nullable().optional(),
+							deleted_at: z.string().nullable().optional(),
+							updated_at: z.string().optional(),
+							created_at: z.string().optional(),
+						}),
+					)
+					.nullable()
+					.optional(),
+				language: z.string().nullable().optional(),
+				external_user_id: z.string().nullable().optional(),
+				deleted_at: z.string().nullable().optional(),
+				updated_at: z.string().optional(),
+				created_at: z.string().optional(),
+			}),
+		)
+		.nullable()
+		.optional(),
+	tags: z
+		.array(
+			z.object({
+				id: z.string(),
+				tenant_id: z.string(),
+				title: z.string().nullable(),
+				enabled: z.boolean(),
+				external_user_id: z.string().nullable().optional(),
+				deleted_at: z.string().nullable().optional(),
+				updated_at: z.string().optional(),
+				created_at: z.string().optional(),
+				posts: z.unknown().nullable().optional(),
+			}),
+		)
+		.nullable()
+		.optional(),
+	categories: z
+		.array(
+			z.object({
+				id: z.string(),
+				tenant_id: z.string(),
+				image: z.string().nullable().optional(),
+				title: z.string().nullable(),
+				enabled: z.boolean(),
+				external_user_id: z.string().nullable().optional(),
+				deleted_at: z.string().nullable().optional(),
+				updated_at: z.string().optional(),
+				created_at: z.string().optional(),
+				posts: z.unknown().nullable().optional(),
+			}),
+		)
+		.nullable()
+		.optional(),
+});
+
+export const postListSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			tenant_id: z.string(),
+			image: z.string().nullable().optional(),
+			title: z.string().nullable(),
+			description: z.string().nullable().optional(),
+			enabled: z.boolean(),
+			external_user_id: z.string().nullable().optional(),
+			deleted_at: z.string().nullable().optional(),
+			updated_at: z.string().optional(),
+			created_at: z.string().optional(),
+			comments: z.unknown().nullable().optional(),
+			tags: z.unknown().nullable().optional(),
+			categories: z.unknown().nullable().optional(),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type PostItem = z.infer<typeof postItemSchema>;
+export type PostList = z.infer<typeof postListSchema>;
+
+// Offer schemas
+export const offerItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	vendor_id: z.string().nullable().optional(),
+	status: z.string(),
+	unique_name: z.string(),
+	name: z.string(),
+	description: z.string().nullable().optional(),
+	conditions: z.string().nullable().optional(),
+	actions: z.string().nullable().optional(),
+	is_stackable: z.boolean(),
+	created_by_id: z.string().nullable().optional(),
+	started_at: z.string().nullable().optional(),
+	ended_at: z.string().nullable().optional(),
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+});
+
+export const offerListSchema = z.object({
+	items: z.array(offerItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const offerActionArgumentSchema = z.object({
+	name: z.string(),
+	required: z.boolean(),
+	type: z.string(),
+});
+
+export const offerActionSchema = z.object({
+	unique_name: z.string(),
+	arguments: z.array(offerActionArgumentSchema),
+});
+
+export const offerActionsSchema = z.array(offerActionSchema);
+
+export const offerConditionArgumentSchema = z.object({
+	name: z.string(),
+	required: z.boolean(),
+	type: z.string(),
+});
+
+export const offerConditionSchema = z.object({
+	unique_name: z.string(),
+	arguments: z.array(offerConditionArgumentSchema),
+});
+
+export const offerConditionsSchema = z.array(offerConditionSchema);
+
+export type OfferItem = z.infer<typeof offerItemSchema>;
+export type OfferList = z.infer<typeof offerListSchema>;
+export type OfferAction = z.infer<typeof offerActionSchema>;
+export type OfferCondition = z.infer<typeof offerConditionSchema>;

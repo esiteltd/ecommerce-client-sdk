@@ -52,7 +52,7 @@ export class Order extends BaseClient {
 
 	async get({ orderId }: { orderId: string }) {
 		const url = `/order/${orderId}`;
-		const result = await this.request(url, {
+		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
 
@@ -83,13 +83,17 @@ export class Order extends BaseClient {
 		turnstileToken,
 	}: {
 		body: z.infer<typeof createOrderGuestSchema>;
-		turnstileToken: string;
+		turnstileToken?: string;
 	}) {
 		const validatedBody = createOrderGuestSchema.parse(body);
+		const headers: Record<string, string> = {};
+		if (turnstileToken) {
+			headers["x-turnstile-token"] = turnstileToken;
+		}
 		const response = await this.unauthenticatedRequest("/public/order", {
 			method: "POST",
 			body: validatedBody,
-			headers: { "x-turnstile-token": turnstileToken },
+			headers,
 		});
 		
 		const result = await response.json();

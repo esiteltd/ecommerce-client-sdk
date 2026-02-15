@@ -47,8 +47,8 @@ export function useAuth(sdk: EcommerceSDK) {
 								body: {
 									// TODO: Replace hardcoded values with the actual value
 									external_user_id: response.user.id,
-									firstname: response.user.firstName,
-									lastname: response.user.lastName,
+									firstname: response.user.firstName ?? "",
+									lastname: response.user.lastName ?? "",
 									email: response.user.email,
 									language: "English",
 									phonenumber: "+15555555555",

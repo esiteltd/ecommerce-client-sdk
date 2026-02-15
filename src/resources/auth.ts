@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { createAddressSchema, loginResponseSchema } from "../schema";
-import { BaseClient } from "../client/base-client";
+import { createAddressSchema, loginResponseSchema, registerResponseSchema } from "../schema";
+import { BaseClient, SDKError } from "../client/base-client";
 
 export class Auth extends BaseClient {
 	async refreshToken({ refreshToken }: { refreshToken: string }) {
@@ -21,20 +21,40 @@ export class Auth extends BaseClient {
 	}: {
 		username: string;
 		password: string;
-		turnstileToken: string;
+		turnstileToken?: string;
 	}) {
-		const result = await this.unauthenticatedRequest("/public/auth/login", {
+		const headers: Record<string, string> = {};
+		const queryParams = new URLSearchParams();
+
+		if (turnstileToken) {
+			headers["x-turnstile-token"] = turnstileToken;
+		} else {
+			queryParams.set("no-challenge", "true");
+		}
+
+		const url = `/public/auth/login${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+
+		const response = await this.unauthenticatedRequest(url, {
 			method: "POST",
-			headers: {
-				"x-turnstile-token": turnstileToken,
-			},
+			headers,
 			body: {
 				username,
 				password,
 				tenant: this.tenant,
 			},
-		}).then((v) => v.json());
+		});
 
+		// Check if response is OK before parsing
+		if (!response.ok) {
+			const responseText = await response.text();
+			throw new SDKError(
+				`HTTP ${response.status}: ${response.statusText}`,
+				response.status,
+				responseText,
+			);
+		}
+
+		const result = await response.json();
 		return loginResponseSchema.parse(result);
 	}
 
@@ -63,7 +83,7 @@ export class Auth extends BaseClient {
 		email: string;
 		password: string;
 		username?: string; // Optional - will use email if not provided
-		turnstileToken: string;
+		turnstileToken?: string;
 		gender?: number;
 		date_of_birth?: string;
 		address?: z.infer<typeof createAddressSchema>;
@@ -72,18 +92,26 @@ export class Auth extends BaseClient {
 		permissionId: string[];
 		jobTitle: string[];
 	}) {
-		const url =
-			"/public/auth/register?" +
-			new URLSearchParams({
-				tenant: this.tenant,
-			});
+		const queryParams = new URLSearchParams({
+			tenant: this.tenant,
+		});
+		if (!turnstileToken) {
+			queryParams.set("no-challenge", "true");
+		}
+
+		const url = `/public/auth/register?${queryParams.toString()}`;
+
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+			"x-api-tenant": this.tenant,
+		};
+		if (turnstileToken) {
+			headers["x-turnstile-token"] = turnstileToken;
+		}
+
 		const response = await this.unauthenticatedRequest(url, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				"x-turnstile-token": turnstileToken,
-				"x-api-tenant": this.tenant,
-			},
+			headers,
 			body: {
 				firstName: firstName,
 				lastName: lastName,
@@ -105,9 +133,15 @@ export class Auth extends BaseClient {
 		});
 
 		if (response.status === 200) {
-			return loginResponseSchema.parse(await response.json());
+			return registerResponseSchema.parse(await response.json());
 		}
 
-		throw response;
+		// Throw SDKError with response details for proper error handling
+		const responseText = await response.text();
+		throw new SDKError(
+			`HTTP ${response.status}: ${response.statusText}`,
+			response.status,
+			responseText,
+		);
 	}
 }

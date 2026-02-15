@@ -4,10 +4,17 @@ import { Branch } from "./resources/branch";
 import { Brand } from "./resources/brand";
 import { Cart } from "./resources/cart";
 import { Category } from "./resources/category";
+import { ContactUs } from "./resources/contact-us";
 import { Customer } from "./resources/customer";
 import { Menu } from "./resources/menu";
+import { Offer } from "./resources/offer";
 import { Order } from "./resources/order";
+import { Post } from "./resources/post";
+import { PostCategory } from "./resources/post-category";
+import { PostComment } from "./resources/post-comment";
+import { PostTag } from "./resources/post-tag";
 import { Product } from "./resources/product";
+import { StaticData } from "./resources/static-data";
 import { Supplier } from "./resources/supplier";
 import { Tenant } from "./resources/tenant";
 import { TGS } from "./resources/tgs";
@@ -25,6 +32,13 @@ export class EcommerceSDK {
 	public readonly brand: Brand;
 	public readonly supplier: Supplier;
 	public readonly menu: Menu;
+	public readonly staticData: StaticData;
+	public readonly contactUs: ContactUs;
+	public readonly post: Post;
+	public readonly postTag: PostTag;
+	public readonly postCategory: PostCategory;
+	public readonly postComment: PostComment;
+	public readonly offer: Offer;
 
 	constructor(config: SDKConfig) {
 		// Initialize all resources with the same config
@@ -40,6 +54,13 @@ export class EcommerceSDK {
 		this.brand = new Brand(config);
 		this.supplier = new Supplier(config);
 		this.menu = new Menu(config);
+		this.staticData = new StaticData(config);
+		this.contactUs = new ContactUs(config);
+		this.post = new Post(config);
+		this.postTag = new PostTag(config);
+		this.postCategory = new PostCategory(config);
+		this.postComment = new PostComment(config);
+		this.offer = new Offer(config);
 	}
 }
 

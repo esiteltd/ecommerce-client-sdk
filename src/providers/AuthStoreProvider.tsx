@@ -85,6 +85,17 @@ export function setTokens(accessToken: string, refreshToken: string): void {
 	globalRef?.getState().setTokens(accessToken, refreshToken);
 }
 
+/**
+ * Clear all auth state globally
+ * Used by the SDK when token refresh fails (expired/invalid refresh token)
+ */
+export function clearAuth(): void {
+	if (typeof window === "undefined") {
+		return;
+	}
+	globalRef?.getState().clearAuth();
+}
+
 // Should be removed from the code as noted in your original comment
 export function getExternalUserId(): string | null {
 	if (typeof window === "undefined") return null;

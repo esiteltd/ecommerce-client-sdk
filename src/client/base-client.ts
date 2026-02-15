@@ -12,6 +12,7 @@ export interface SDKConfig {
 		getCustomerId: () => string | null;
 		getDeviceToken: () => string | null;
 		setTokens?: (accessToken: string, refreshToken: string) => void;
+		onAuthFailure?: () => void;
 	};
 }
 
@@ -66,13 +67,14 @@ export class BaseClient {
 	};
 
 	private async refreshAccessToken(): Promise<string> {
+		const refreshToken = this.config.auth?.getRefreshToken?.();
+
+		if (!refreshToken) {
+			this.config.auth?.onAuthFailure?.();
+			throw new SDKError("No refresh token available", 401);
+		}
+
 		try {
-			const refreshToken = this.config.auth?.getRefreshToken?.();
-
-			if (!refreshToken) {
-				throw new SDKError("No refresh token available", 401);
-			}
-
 			// Use Auth class to refresh token
 			const auth = new Auth(this.config);
 			const { access_token, newRefreshToken } = await auth.refreshToken({
@@ -84,6 +86,8 @@ export class BaseClient {
 
 			return access_token;
 		} catch (error) {
+			// Refresh token is expired/invalid — clear auth state
+			this.config.auth?.onAuthFailure?.();
 			throw error;
 		}
 	}
