@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
 	addToFavoritesSchema,
+	adminProductSchema,
 	createProductSchema,
 	productListSchema,
 	productMetricsSchema,
@@ -213,7 +214,12 @@ export class Product extends BaseClient {
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
-		return result;
+		const parsed = adminProductSchema.safeParse(result);
+		if (!parsed.success) {
+			console.error("Error parsing admin product", parsed.error);
+			throw new Error("Error parsing admin product");
+		}
+		return parsed.data;
 	}
 
 	async create({ body }: { body: z.infer<typeof createProductSchema> }) {

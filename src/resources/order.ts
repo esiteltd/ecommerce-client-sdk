@@ -74,6 +74,24 @@ export class Order extends BaseClient {
 		return parsed.data;
 	}
 
+	async adminGet({ orderId }: { orderId: string }) {
+		const url = `/admin/order/${orderId}`;
+		const result = await this.request(url, {
+			method: "GET",
+		}).then((r) => r.json());
+
+		if (result.error) {
+			throw new Error(result.error);
+		}
+		const parsed = getOrderSchema.safeParse(result);
+		if (!parsed.success) {
+			console.error(parsed.error);
+			throw new Error(parsed.error.message);
+		}
+
+		return parsed.data;
+	}
+
 	async create({ body }: { body: z.infer<typeof createOrderSchema> }) {
 		const validatedBody = createOrderSchema.parse(body);
 		const result = await this.request("/order", {
@@ -219,7 +237,7 @@ export class Order extends BaseClient {
 		body: z.infer<typeof adminUpdateOrderSchema>;
 	}) {
 		const validatedBody = adminUpdateOrderSchema.parse(body);
-		const url = `/order/${orderId}`;
+		const url = `/admin/order/${orderId}`;
 		const result = await this.request(url, {
 			method: "PUT",
 			body: validatedBody,

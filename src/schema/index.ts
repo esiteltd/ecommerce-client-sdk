@@ -240,6 +240,19 @@ export const productListItemSchema = z.object({
 	category_title: z.string().nullable(),
 	brand_id: z.string().nullable(),
 	brand_title: z.string().nullable(),
+	attributes: z.array(
+		z.object({
+			id: z.string().optional(),
+			product_id: z.string().optional(),
+			parent_id: z.string().nullable().optional(),
+			media_id: z.string().nullable().optional(),
+			type: z.string(),
+			extra: z.string().optional(),
+			price: z.number().optional(),
+			sku: z.string().optional(),
+			children: z.array(z.unknown()).optional(),
+		}),
+	).optional().default([]),
 });
 
 export const productListSchema = z.object({
@@ -517,6 +530,9 @@ export const getOrderSchema = z.object({
 	total_paid: z.number(),
 	shipment_service_code: z.string().nullable().optional(),
 	shipment_price: z.number(),
+	shipment_status: z.string().nullable().optional(),
+	federal_tax: z.number().optional().default(0),
+	province_tax: z.number().optional().default(0),
 	created_at: z.string().datetime({ offset: true }),
 	payment_id: z.string().uuid().nullable().optional(),
 	payment_provider: z.string().nullable().optional(),
@@ -835,7 +851,7 @@ export const branchListItemSchema = z.object({
 			delivery_cost: z.string(),
 			created_at: z.string(),
 		}),
-	),
+	).nullable(),
 });
 
 export const branchListSchema = z.object({
@@ -1360,6 +1376,13 @@ export const createOfferSchema = z.object({
 	status: z.string().optional(),
 	start_at: z.string().optional(),
 	end_at: z.string().optional(),
+	// Postman fields
+	vendor_id: z.string().optional(),
+	unique_name: z.string().optional(),
+	name: z.string().optional(),
+	is_stackable: z.boolean().optional(),
+	started_at: z.string().optional(),
+	ended_at: z.string().optional(),
 });
 
 export const updateOfferSchema = createOfferSchema.partial();
@@ -1481,10 +1504,25 @@ export type CreateProduct = z.infer<typeof createProductSchema>;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
 
 // ─── Branch Admin schemas ─────────────────────────────────────────────────────
+export const polygonPointSchema = z.object({
+	latitude: z.number(),
+	longitude: z.number(),
+});
+
+export const geoZoneInputSchema = z.object({
+	name: z.string(),
+	delivery_cost: z.number(),
+	polygon: z.array(polygonPointSchema),
+});
+
+export const driverInputSchema = z.object({
+	name: z.string(),
+});
+
 export const createBranchSchema = z.object({
 	name: z.string(),
-	geozones: z.array(z.unknown()).optional(),
-	drivers: z.array(z.string()).optional(),
+	geozones: z.array(geoZoneInputSchema).optional(),
+	drivers: z.array(driverInputSchema).optional(),
 });
 
 export const updateBranchSchema = z.object({
@@ -1500,6 +1538,9 @@ export const branchOrderListSchema = z.object({
 	total: z.number(),
 });
 
+export type PolygonPoint = z.infer<typeof polygonPointSchema>;
+export type GeoZoneInput = z.infer<typeof geoZoneInputSchema>;
+export type DriverInput = z.infer<typeof driverInputSchema>;
 export type CreateBranch = z.infer<typeof createBranchSchema>;
 export type UpdateBranch = z.infer<typeof updateBranchSchema>;
 
@@ -1508,9 +1549,17 @@ export const createBrandSchema = z.object({
 	name: z.string(),
 	image: z.string().optional(),
 	title: z.record(z.string(), z.string()).optional(),
+	description: z.record(z.string(), z.string()).optional(),
 });
 
-export const updateBrandSchema = createBrandSchema.partial();
+export const updateBrandSchema = z.object({
+	name: z.string().optional(),
+	image: z.string().optional(),
+	title: z.record(z.string(), z.string()).optional(),
+	description: z.record(z.string(), z.string()).optional(),
+	media_id: z.string().optional(),
+	deleted: z.boolean().optional(),
+});
 
 export type CreateBrand = z.infer<typeof createBrandSchema>;
 export type UpdateBrand = z.infer<typeof updateBrandSchema>;
@@ -1637,6 +1686,8 @@ export type UpdatePost = z.infer<typeof updatePostSchema>;
 // ─── Post Tag Admin schemas ───────────────────────────────────────────────────
 export const createPostTagSchema = z.object({
 	name: z.record(z.string(), z.string()),
+	title: z.string().optional(),
+	enabled: z.boolean().optional(),
 });
 
 export const updatePostTagSchema = createPostTagSchema.partial();
@@ -1648,6 +1699,7 @@ export type UpdatePostTag = z.infer<typeof updatePostTagSchema>;
 export const createPostCategorySchema = z.object({
 	title: z.record(z.string(), z.string()),
 	image: z.string().optional(),
+	enabled: z.boolean().optional(),
 });
 
 export const updatePostCategorySchema = createPostCategorySchema.partial();
@@ -1658,17 +1710,18 @@ export type UpdatePostCategory = z.infer<typeof updatePostCategorySchema>;
 // ─── Post Comment Admin schemas ───────────────────────────────────────────────
 export const updatePostCommentSchema = z.object({
 	message: z.string().optional(),
+	post_id: z.string().optional(),
+	replied_to: z.string().optional(),
 });
 
 export type UpdatePostComment = z.infer<typeof updatePostCommentSchema>;
 
 // ─── Static Data Admin schemas ────────────────────────────────────────────────
 export const createStaticDataSchema = z.object({
-	type: z.string().optional(),
-	key: z.string().optional(),
-	title: z.record(z.string(), z.string()).optional(),
-	description: z.record(z.string(), z.string()).optional(),
-	metadata: z.unknown().optional(),
+	title: z.string().optional(),
+	image: z.string().optional(),
+	localized_url: z.string().optional(),
+	enabled: z.boolean().optional(),
 });
 
 export const updateStaticDataSchema = createStaticDataSchema.partial();
@@ -1730,6 +1783,56 @@ export type MediaItem = z.infer<typeof mediaItemSchema>;
 export type MediaList = z.infer<typeof mediaListSchema>;
 export type CreateMedia = z.infer<typeof createMediaSchema>;
 export type UpdateMedia = z.infer<typeof updateMediaSchema>;
+
+// Multi-language admin product schema (GET /admin/product/:id)
+export const adminProductSchema = z.object({
+	id: z.string(),
+	cover_media_id: z.string().optional(),
+	title: z.record(z.string(), z.string()),
+	description: z.record(z.string(), z.string()).optional(),
+	short_description: z.record(z.string(), z.string()).optional(),
+	price: z.number(),
+	sku: z.string(),
+	slug: z.string().optional(),
+	is_taxable: z.boolean().nullable().optional(),
+	currency: z.string(),
+	weight: z.number().optional(),
+	unit: z.string().optional(),
+	disable: z.boolean().optional(),
+	out_of_stock: z.boolean(),
+	reviews_count: z.number().optional(),
+	rating: z.number().optional(),
+	attributes: z.array(
+		z.object({
+			id: z.string().optional(),
+			type: z.string(),
+			extra: z.string().optional(),
+			price: z.number().optional(),
+			sku: z.string().optional(),
+			children: z.array(z.unknown()).optional(),
+		}),
+	).optional().default([]),
+	media: z.array(mediaItemSchema).nullish().default([]),
+	brands: z.array(
+		z.object({
+			id: z.string(),
+			title: z.record(z.string(), z.string()).optional(),
+			description: z.record(z.string(), z.string()).optional(),
+		}),
+	).optional().default([]),
+	categories: z.array(
+		z.object({
+			id: z.string(),
+			parent_id: z.string().nullable().optional(),
+			media_id: z.string().nullable().optional(),
+			title: z.record(z.string(), z.string()).optional(),
+			products: z.number().optional(),
+			children: z.array(z.unknown()).optional(),
+		}),
+	).optional().default([]),
+});
+
+export type AdminProduct = z.infer<typeof adminProductSchema>;
 
 // ─── Coupon schemas ───────────────────────────────────────────────────────────
 export const couponItemSchema = z.object({
