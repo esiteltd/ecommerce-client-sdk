@@ -1,9 +1,12 @@
+import { z } from "zod";
 import { BaseClient } from "../client/base-client";
 import {
+	createOfferSchema,
 	offerItemSchema,
 	offerListSchema,
 	offerActionsSchema,
 	offerConditionsSchema,
+	updateOfferSchema,
 } from "../schema";
 import { objectToURLSearchParams } from "../utils";
 
@@ -84,5 +87,36 @@ export class Offer extends BaseClient {
 		);
 		const result = await safeJson(response, []);
 		return offerConditionsSchema.parse(result);
+	}
+
+	async create({ body }: { body: z.infer<typeof createOfferSchema> }) {
+		const validatedBody = createOfferSchema.parse(body);
+		const result = await this.request("/offers", {
+			method: "POST",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return offerItemSchema.parse(result);
+	}
+
+	async update({
+		id,
+		body,
+	}: {
+		id: string;
+		body: z.infer<typeof updateOfferSchema>;
+	}) {
+		const validatedBody = updateOfferSchema.parse(body);
+		const result = await this.request(`/offers/${id}`, {
+			method: "PUT",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async delete({ id }: { id: string }) {
+		await this.request(`/offers/${id}`, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
 	}
 }

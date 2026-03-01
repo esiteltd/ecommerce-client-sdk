@@ -1,11 +1,14 @@
 import { z } from "zod";
 import {
 	addToFavoritesSchema,
+	createProductSchema,
 	productListSchema,
+	productMetricsSchema,
 	productSchema,
 	queryFavoritesSchema,
 	queryReviewSchema,
 	reviewSchema,
+	updateProductSchema,
 } from "../schema";
 import { BaseClient } from "../client/base-client";
 import { objectToURLSearchParams } from "../utils";
@@ -204,4 +207,78 @@ export class Product extends BaseClient {
 			}
 		},
 	};
+
+	async adminGet({ productId }: { productId: string }) {
+		const url = `/product/${productId}`;
+		const result = await this.request(url, {
+			method: "GET",
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async create({ body }: { body: z.infer<typeof createProductSchema> }) {
+		const validatedBody = createProductSchema.parse(body);
+		const result = await this.request("/product", {
+			method: "POST",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return productSchema.parse(result);
+	}
+
+	async update({
+		productId,
+		body,
+	}: {
+		productId: string;
+		body: z.infer<typeof updateProductSchema>;
+	}) {
+		const validatedBody = updateProductSchema.parse(body);
+		const url = `/product/${productId}`;
+		const result = await this.request(url, {
+			method: "PUT",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async delete({ productId }: { productId: string }) {
+		const url = `/product/${productId}`;
+		await this.request(url, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
+	}
+
+	async importExcel({ file }: { file: File }) {
+		const formData = new FormData();
+		formData.append("file", file);
+		const url = "/product/import/excel";
+		const result = await this.request(url, {
+			method: "POST",
+			body: formData,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async getSellMetrics({
+		query,
+	}: {
+		query: {
+			granularity?: string;
+			start?: string;
+			end?: string;
+			timezone?: string;
+		};
+	}) {
+		const url = "/product/metrics/sell/series?" + objectToURLSearchParams(query);
+		const result = await this.request(url, {
+			method: "GET",
+		}).then((r) => r.json());
+		const parsed = productMetricsSchema.safeParse(result);
+		if (!parsed.success) {
+			console.error(parsed.error);
+			return { series: [] };
+		}
+		return parsed.data;
+	}
 }

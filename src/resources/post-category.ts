@@ -1,5 +1,11 @@
+import { z } from "zod";
 import { BaseClient } from "../client/base-client";
-import { postCategoryItemSchema, postCategoryListSchema } from "../schema";
+import {
+	createPostCategorySchema,
+	postCategoryItemSchema,
+	postCategoryListSchema,
+	updatePostCategorySchema,
+} from "../schema";
 import { objectToURLSearchParams } from "../utils";
 
 export class PostCategory extends BaseClient {
@@ -45,5 +51,36 @@ export class PostCategory extends BaseClient {
 			},
 		).then((r) => r.json());
 		return postCategoryListSchema.parse(result);
+	}
+
+	async create({ body }: { body: z.infer<typeof createPostCategorySchema> }) {
+		const validatedBody = createPostCategorySchema.parse(body);
+		const result = await this.request("/post-categories", {
+			method: "POST",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async update({
+		id,
+		body,
+	}: {
+		id: string;
+		body: z.infer<typeof updatePostCategorySchema>;
+	}) {
+		const validatedBody = updatePostCategorySchema.parse(body);
+		const result = await this.request(`/post-categories/${id}`, {
+			method: "PUT",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async delete({ id }: { id: string }) {
+		await this.request(`/post-categories/${id}`, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
 	}
 }

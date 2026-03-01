@@ -5,10 +5,13 @@ import { Brand } from "./resources/brand";
 import { Cart } from "./resources/cart";
 import { Category } from "./resources/category";
 import { ContactUs } from "./resources/contact-us";
+import { Coupon } from "./resources/coupon";
 import { Customer } from "./resources/customer";
+import { Media } from "./resources/media";
 import { Menu } from "./resources/menu";
 import { Offer } from "./resources/offer";
 import { Order } from "./resources/order";
+import { Placeholder } from "./resources/placeholder";
 import { Post } from "./resources/post";
 import { PostCategory } from "./resources/post-category";
 import { PostComment } from "./resources/post-comment";
@@ -39,6 +42,9 @@ export class EcommerceSDK {
 	public readonly postCategory: PostCategory;
 	public readonly postComment: PostComment;
 	public readonly offer: Offer;
+	public readonly media: Media;
+	public readonly coupon: Coupon;
+	public readonly placeholder: Placeholder;
 
 	constructor(config: SDKConfig) {
 		// Initialize all resources with the same config
@@ -61,6 +67,9 @@ export class EcommerceSDK {
 		this.postCategory = new PostCategory(config);
 		this.postComment = new PostComment(config);
 		this.offer = new Offer(config);
+		this.media = new Media(config);
+		this.coupon = new Coupon(config);
+		this.placeholder = new Placeholder(config);
 	}
 }
 

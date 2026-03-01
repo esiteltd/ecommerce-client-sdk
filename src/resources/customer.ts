@@ -160,4 +160,23 @@ export class Customer extends BaseClient {
 
 		return;
 	}
+
+	async getById({ customerId }: { customerId: string }) {
+		const url = `/customer/${customerId}`;
+		const result = await this.request(url, {
+			method: "GET",
+		});
+		if (result.status === 200) {
+			return customerSchema.parse(await result.json());
+		}
+		return null;
+	}
+
+	async delete({ customerId }: { customerId: string }) {
+		const url = `/customer/${customerId}`;
+		await this.request(url, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
+	}
 }

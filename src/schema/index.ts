@@ -1350,3 +1350,477 @@ export type OfferItem = z.infer<typeof offerItemSchema>;
 export type OfferList = z.infer<typeof offerListSchema>;
 export type OfferAction = z.infer<typeof offerActionSchema>;
 export type OfferCondition = z.infer<typeof offerConditionSchema>;
+
+// ─── Offer Admin schemas ──────────────────────────────────────────────────────
+export const createOfferSchema = z.object({
+	title: z.record(z.string(), z.string()).optional(),
+	description: z.record(z.string(), z.string()).optional(),
+	conditions: z.array(z.unknown()).optional(),
+	actions: z.array(z.unknown()).optional(),
+	status: z.string().optional(),
+	start_at: z.string().optional(),
+	end_at: z.string().optional(),
+});
+
+export const updateOfferSchema = createOfferSchema.partial();
+
+export type CreateOffer = z.infer<typeof createOfferSchema>;
+export type UpdateOffer = z.infer<typeof updateOfferSchema>;
+
+// ─── Order Admin schemas ──────────────────────────────────────────────────────
+export const adminUpdateOrderSchema = z.object({
+	customer_id: z.string().optional(),
+	address_id: z.string().optional(),
+	shipment_service_code: z.string().optional(),
+	shipment_status: z.string().optional(),
+	shipment_price: z.number().optional(),
+	shipment_id: z.string().optional(),
+	shipment_tracking_code: z.string().optional(),
+	federal_tax: z.number().optional(),
+	province_tax: z.number().optional(),
+});
+
+export const adminOrderListSchema = z.object({
+	items: z.array(
+		z.object({
+			id: z.string(),
+			number: z.string().optional(),
+			customer_id: z.string(),
+			currency: z.string(),
+			total_price: z.number(),
+			total_paid: z.number(),
+			canceled: z.boolean().optional(),
+			created_at: z.string(),
+			payment_id: z.string().nullable().optional(),
+			payment_provider: z.string().nullable().optional(),
+			payment_status: z.string().nullable().optional(),
+			payment_created_at: z.string().nullable().optional(),
+			items_count: z.number().optional(),
+			shipment_status: z.string().nullable().optional(),
+			customer: z.object({
+				id: z.string(),
+				firstname: z.string().optional(),
+				lastname: z.string().optional(),
+				email: z.string().optional(),
+			}).nullable().optional(),
+			address: z.object({
+				id: z.string(),
+				city: z.string().optional(),
+				country: z.string().optional(),
+			}).passthrough().nullable().optional(),
+			current_step: z.object({
+				id: z.string(),
+				order_id: z.string(),
+				kind: z.string(),
+				extra: z.string(),
+				created_at: z.string(),
+			}).optional(),
+		}),
+	),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const orderItemUpdateSchema = z.object({
+	price: z.number().optional(),
+	quantity: z.number().optional(),
+	notes: z.string().optional(),
+});
+
+export const orderMetricsSchema = z.object({
+	series: z.array(
+		z.object({
+			date: z.string(),
+			value: z.number(),
+		}),
+	).optional().default([]),
+});
+
+export const orderStatisticsSchema = z.object({
+	total_orders: z.number().optional(),
+	total_revenue: z.number().optional(),
+	average_order_value: z.number().optional(),
+}).passthrough();
+
+export type AdminUpdateOrder = z.infer<typeof adminUpdateOrderSchema>;
+export type AdminOrderList = z.infer<typeof adminOrderListSchema>;
+export type OrderItemUpdate = z.infer<typeof orderItemUpdateSchema>;
+
+// ─── Product Admin schemas ────────────────────────────────────────────────────
+export const createProductSchema = z.object({
+	cover_media_id: z.string().optional(),
+	title: z.record(z.string(), z.string()),
+	description: z.record(z.string(), z.string()).optional(),
+	short_description: z.record(z.string(), z.string()).optional(),
+	price: z.number(),
+	sku: z.string(),
+	slug: z.string().optional(),
+	currency: z.string().optional(),
+	unit: z.string().optional(),
+	weight: z.number().optional(),
+	is_taxable: z.boolean().optional(),
+	attributes: z.array(z.unknown()).optional(),
+	media: z.array(z.string()).optional(),
+	brands: z.array(z.string()).optional(),
+	categories: z.array(z.string()).optional(),
+});
+
+export const updateProductSchema = createProductSchema.partial();
+
+export const productMetricsSchema = z.object({
+	series: z.array(
+		z.object({
+			date: z.string(),
+			value: z.number(),
+		}),
+	).optional().default([]),
+});
+
+export type CreateProduct = z.infer<typeof createProductSchema>;
+export type UpdateProduct = z.infer<typeof updateProductSchema>;
+
+// ─── Branch Admin schemas ─────────────────────────────────────────────────────
+export const createBranchSchema = z.object({
+	name: z.string(),
+	geozones: z.array(z.unknown()).optional(),
+	drivers: z.array(z.string()).optional(),
+});
+
+export const updateBranchSchema = z.object({
+	name: z.string().optional(),
+});
+
+export const branchItemSchema = branchListItemSchema;
+
+export const branchOrderListSchema = z.object({
+	items: z.array(z.unknown()),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type CreateBranch = z.infer<typeof createBranchSchema>;
+export type UpdateBranch = z.infer<typeof updateBranchSchema>;
+
+// ─── Brand Admin schemas ──────────────────────────────────────────────────────
+export const createBrandSchema = z.object({
+	name: z.string(),
+	image: z.string().optional(),
+	title: z.record(z.string(), z.string()).optional(),
+});
+
+export const updateBrandSchema = createBrandSchema.partial();
+
+export type CreateBrand = z.infer<typeof createBrandSchema>;
+export type UpdateBrand = z.infer<typeof updateBrandSchema>;
+
+// ─── Category Admin schemas ───────────────────────────────────────────────────
+export const createCategorySchema = z.object({
+	parent_id: z.string().optional(),
+	media_id: z.string().optional(),
+	title: z.record(z.string(), z.string()),
+});
+
+export const updateCategorySchema = z.object({
+	parent_id: z.string().optional(),
+	media_id: z.string().optional(),
+	deleted: z.boolean().optional(),
+	title: z.record(z.string(), z.string()).optional(),
+});
+
+export type CreateCategory = z.infer<typeof createCategorySchema>;
+export type UpdateCategory = z.infer<typeof updateCategorySchema>;
+
+export const adminCategoryItemSchema = z.object({
+	id: z.string(),
+	parent_id: z.string().nullable().optional(),
+	media_id: z.string().nullable().optional(),
+	title: z.record(z.string(), z.string()),
+	products: z.number().optional(),
+	children: z.array(z.unknown()).optional(),
+});
+
+export type AdminCategoryItem = z.infer<typeof adminCategoryItemSchema>;
+
+// ─── Supplier Admin schemas ───────────────────────────────────────────────────
+export const createSupplierSchema = z.object({
+	name: z.string(),
+	metadata: z.string().optional(),
+	image: z.string().optional(),
+});
+
+export const updateSupplierSchema = z.object({
+	metadata: z.string().optional(),
+	image: z.string().optional(),
+	name: z.string().optional(),
+});
+
+export const supplierItemSchema = supplierListItemSchema;
+
+export const createSupplierLocaleSchema = z.object({
+	supplier_id: z.string(),
+	locale: z.string(),
+	type: z.string(),
+	value: z.string(),
+});
+
+export const updateSupplierLocaleSchema = z.object({
+	locale: z.string().optional(),
+	type: z.string().optional(),
+	value: z.string().optional(),
+});
+
+export const supplierLocaleItemSchema = z.object({
+	id: z.string(),
+	supplier_id: z.string().optional(),
+	locale: z.string().optional(),
+	type: z.string().optional(),
+	value: z.string().optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+});
+
+export const supplierLocaleListSchema = z.object({
+	items: z.array(supplierLocaleItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type CreateSupplier = z.infer<typeof createSupplierSchema>;
+export type UpdateSupplier = z.infer<typeof updateSupplierSchema>;
+export type CreateSupplierLocale = z.infer<typeof createSupplierLocaleSchema>;
+export type UpdateSupplierLocale = z.infer<typeof updateSupplierLocaleSchema>;
+export type SupplierLocaleItem = z.infer<typeof supplierLocaleItemSchema>;
+
+// ─── Menu Admin schemas ───────────────────────────────────────────────────────
+export const createMenuSchema = z.object({
+	title: z.record(z.string(), z.string()),
+	parent_id: z.string().optional(),
+	image_media_id: z.string().optional(),
+	url: z.string().optional(),
+	target: z.string().optional(),
+	vorder: z.number().optional(),
+});
+
+export const updateMenuSchema = z.object({
+	parent_id: z.string().optional(),
+	image_media_id: z.string().optional(),
+	url: z.string().optional(),
+	target: z.string().optional(),
+	title: z.record(z.string(), z.string()).optional(),
+});
+
+export const menuItemSchema = menuListItemSchema;
+
+export type CreateMenu = z.infer<typeof createMenuSchema>;
+export type UpdateMenu = z.infer<typeof updateMenuSchema>;
+
+// ─── Post Admin schemas ───────────────────────────────────────────────────────
+export const createPostSchema = z.object({
+	title: z.record(z.string(), z.string()),
+	description: z.record(z.string(), z.string()).optional(),
+	content: z.record(z.string(), z.string()).optional(),
+	tag_ids: z.array(z.string()).optional(),
+	category_ids: z.array(z.string()).optional(),
+	media_id: z.string().optional(),
+	status: z.string().optional(),
+	published_at: z.string().optional(),
+});
+
+export const updatePostSchema = createPostSchema.partial();
+
+export type CreatePost = z.infer<typeof createPostSchema>;
+export type UpdatePost = z.infer<typeof updatePostSchema>;
+
+// ─── Post Tag Admin schemas ───────────────────────────────────────────────────
+export const createPostTagSchema = z.object({
+	name: z.record(z.string(), z.string()),
+});
+
+export const updatePostTagSchema = createPostTagSchema.partial();
+
+export type CreatePostTag = z.infer<typeof createPostTagSchema>;
+export type UpdatePostTag = z.infer<typeof updatePostTagSchema>;
+
+// ─── Post Category Admin schemas ──────────────────────────────────────────────
+export const createPostCategorySchema = z.object({
+	title: z.record(z.string(), z.string()),
+	image: z.string().optional(),
+});
+
+export const updatePostCategorySchema = createPostCategorySchema.partial();
+
+export type CreatePostCategory = z.infer<typeof createPostCategorySchema>;
+export type UpdatePostCategory = z.infer<typeof updatePostCategorySchema>;
+
+// ─── Post Comment Admin schemas ───────────────────────────────────────────────
+export const updatePostCommentSchema = z.object({
+	message: z.string().optional(),
+});
+
+export type UpdatePostComment = z.infer<typeof updatePostCommentSchema>;
+
+// ─── Static Data Admin schemas ────────────────────────────────────────────────
+export const createStaticDataSchema = z.object({
+	type: z.string().optional(),
+	key: z.string().optional(),
+	title: z.record(z.string(), z.string()).optional(),
+	description: z.record(z.string(), z.string()).optional(),
+	metadata: z.unknown().optional(),
+});
+
+export const updateStaticDataSchema = createStaticDataSchema.partial();
+
+export type CreateStaticData = z.infer<typeof createStaticDataSchema>;
+export type UpdateStaticData = z.infer<typeof updateStaticDataSchema>;
+
+// ─── Contact Us Admin schemas ─────────────────────────────────────────────────
+export const updateContactUsSchema = z.object({
+	message: z.string().optional(),
+	name: z.string().optional(),
+	phone: z.string().optional(),
+	email: z.string().optional(),
+});
+
+export type UpdateContactUs = z.infer<typeof updateContactUsSchema>;
+
+// ─── Tenant Admin schemas ─────────────────────────────────────────────────────
+export const updateFrontendMetadataSchema = z.object({
+	frontend_metadata_template: z.unknown(),
+});
+
+export type UpdateFrontendMetadata = z.infer<typeof updateFrontendMetadataSchema>;
+
+// ─── Media schemas ────────────────────────────────────────────────────────────
+export const mediaItemSchema = z.object({
+	id: z.string(),
+	content_type: z.string(),
+	file_id: z.string(),
+	alt: z.string(),
+	tenant_id: z.string().optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+});
+
+export const mediaListSchema = z.object({
+	items: z.array(mediaItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const createMediaSchema = z.object({
+	content_type: z.string(),
+	file_id: z.string(),
+	alt: z.string(),
+});
+
+export const updateMediaSchema = z.object({
+	alt: z.string().optional(),
+	file_id: z.string().optional(),
+});
+
+export const batchDeleteMediaSchema = z.object({
+	id: z.array(z.string()),
+});
+
+export type MediaItem = z.infer<typeof mediaItemSchema>;
+export type MediaList = z.infer<typeof mediaListSchema>;
+export type CreateMedia = z.infer<typeof createMediaSchema>;
+export type UpdateMedia = z.infer<typeof updateMediaSchema>;
+
+// ─── Coupon schemas ───────────────────────────────────────────────────────────
+export const couponItemSchema = z.object({
+	id: z.string(),
+	code: z.string(),
+	vendor_id: z.string().nullable().optional(),
+	name: z.string().nullable().optional(),
+	description: z.string().nullable().optional(),
+	discount_type: z.string().nullable().optional(),
+	discount_value: z.number().nullable().optional(),
+	target_type: z.string().nullable().optional(),
+	target_ids: z.array(z.string()).nullable().optional(),
+	conditions: z.unknown().nullable().optional(),
+	max_discount_amount: z.number().nullable().optional(),
+	min_order_value: z.number().nullable().optional(),
+	start_at: z.string().nullable().optional(),
+	end_at: z.string().nullable().optional(),
+	usage_limit_per_customer: z.number().nullable().optional(),
+	usage_limit_global: z.number().nullable().optional(),
+	is_stackable: z.boolean().optional(),
+	status: z.string().nullable().optional(),
+	tenant_id: z.string().optional(),
+	deleted_at: z.string().nullable().optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+});
+
+export const couponListSchema = z.object({
+	items: z.array(couponItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const createCouponSchema = z.object({
+	code: z.string(),
+	vendor_id: z.string().optional(),
+	name: z.string().optional(),
+	description: z.string().optional(),
+	discount_type: z.string().optional(),
+	discount_value: z.number().optional(),
+	target_type: z.string().optional(),
+	target_ids: z.array(z.string()).optional(),
+	conditions: z.unknown().optional(),
+	max_discount_amount: z.number().optional(),
+	min_order_value: z.number().optional(),
+	start_at: z.string().optional(),
+	end_at: z.string().optional(),
+	usage_limit_per_customer: z.number().optional(),
+	usage_limit_global: z.number().optional(),
+	is_stackable: z.boolean().optional(),
+	status: z.string().optional(),
+});
+
+export const updateCouponSchema = createCouponSchema.partial();
+
+export type CouponItem = z.infer<typeof couponItemSchema>;
+export type CouponList = z.infer<typeof couponListSchema>;
+export type CreateCoupon = z.infer<typeof createCouponSchema>;
+export type UpdateCoupon = z.infer<typeof updateCouponSchema>;
+
+// ─── Placeholder schemas ──────────────────────────────────────────────────────
+export const placeholderItemSchema = z.object({
+	id: z.string(),
+	parent_id: z.string().nullable().optional(),
+	media_id: z.string().nullable().optional(),
+	title: z.string().nullable().optional(),
+	description: z.string().nullable().optional(),
+	tenant_id: z.string().optional(),
+	deleted_at: z.string().nullable().optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+});
+
+export const placeholderListSchema = z.object({
+	items: z.array(placeholderItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export const createPlaceholderSchema = z.object({
+	parent_id: z.string().optional(),
+	media_id: z.string().optional(),
+	title: z.record(z.string(), z.string()).optional(),
+	description: z.record(z.string(), z.string()).optional(),
+});
+
+export const updatePlaceholderSchema = createPlaceholderSchema.partial();
+
+export type PlaceholderItem = z.infer<typeof placeholderItemSchema>;
+export type PlaceholderList = z.infer<typeof placeholderListSchema>;
+export type CreatePlaceholder = z.infer<typeof createPlaceholderSchema>;
+export type UpdatePlaceholder = z.infer<typeof updatePlaceholderSchema>;

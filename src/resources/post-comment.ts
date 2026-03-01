@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { BaseClient } from "../client/base-client";
 import {
+	createPostCommentSchema,
 	postCommentItemSchema,
 	postCommentListSchema,
-	createPostCommentSchema,
+	updatePostCommentSchema,
 } from "../schema";
 import { objectToURLSearchParams } from "../utils";
 
@@ -63,5 +64,27 @@ export class PostComment extends BaseClient {
 			body: validatedBody,
 		}).then((r) => r.json());
 		return postCommentItemSchema.parse(result);
+	}
+
+	async update({
+		id,
+		body,
+	}: {
+		id: string;
+		body: z.infer<typeof updatePostCommentSchema>;
+	}) {
+		const validatedBody = updatePostCommentSchema.parse(body);
+		const result = await this.request(`/post-comments/${id}`, {
+			method: "PUT",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async delete({ id }: { id: string }) {
+		await this.request(`/post-comments/${id}`, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
 	}
 }

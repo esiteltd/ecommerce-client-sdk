@@ -1,5 +1,6 @@
+import { z } from "zod";
 import { BaseClient } from "../client/base-client";
-import { postItemSchema, postListSchema } from "../schema";
+import { createPostSchema, postItemSchema, postListSchema, updatePostSchema } from "../schema";
 import { objectToURLSearchParams } from "../utils";
 
 export class Post extends BaseClient {
@@ -45,5 +46,36 @@ export class Post extends BaseClient {
 			},
 		).then((r) => r.json());
 		return postListSchema.parse(result);
+	}
+
+	async create({ body }: { body: z.infer<typeof createPostSchema> }) {
+		const validatedBody = createPostSchema.parse(body);
+		const result = await this.request("/posts", {
+			method: "POST",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async update({
+		id,
+		body,
+	}: {
+		id: string;
+		body: z.infer<typeof updatePostSchema>;
+	}) {
+		const validatedBody = updatePostSchema.parse(body);
+		const result = await this.request(`/posts/${id}`, {
+			method: "PUT",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async delete({ id }: { id: string }) {
+		await this.request(`/posts/${id}`, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
 	}
 }

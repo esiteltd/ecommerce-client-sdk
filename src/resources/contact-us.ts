@@ -4,6 +4,7 @@ import {
 	contactUsItemSchema,
 	contactUsListSchema,
 	createContactUsSchema,
+	updateContactUsSchema,
 } from "../schema";
 import { objectToURLSearchParams } from "../utils";
 
@@ -63,5 +64,27 @@ export class ContactUs extends BaseClient {
 			body: validatedBody,
 		}).then((r) => r.json());
 		return contactUsItemSchema.parse(result);
+	}
+
+	async update({
+		id,
+		body,
+	}: {
+		id: string;
+		body: z.infer<typeof updateContactUsSchema>;
+	}) {
+		const validatedBody = updateContactUsSchema.parse(body);
+		const result = await this.request(`/contactus/${id}`, {
+			method: "PUT",
+			body: validatedBody,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async delete({ id }: { id: string }) {
+		await this.request(`/contactus/${id}`, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
 	}
 }
