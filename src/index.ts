@@ -11,6 +11,7 @@ import { Media } from "./resources/media";
 import { Menu } from "./resources/menu";
 import { Offer } from "./resources/offer";
 import { Order } from "./resources/order";
+import { Payment } from "./resources/payment";
 import { Placeholder } from "./resources/placeholder";
 import { Post } from "./resources/post";
 import { PostCategory } from "./resources/post-category";
@@ -29,6 +30,7 @@ export class EcommerceSDK {
 	public readonly category: Category;
 	public readonly cart: Cart;
 	public readonly order: Order;
+	public readonly payment: Payment;
 	public readonly customer: Customer;
 	public readonly tenant: Tenant;
 	public readonly branch: Branch;
@@ -54,6 +56,7 @@ export class EcommerceSDK {
 		this.category = new Category(config);
 		this.cart = new Cart(config);
 		this.order = new Order(config);
+		this.payment = new Payment(config);
 		this.customer = new Customer(config);
 		this.tenant = new Tenant(config);
 		this.branch = new Branch(config);

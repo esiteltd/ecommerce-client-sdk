@@ -138,7 +138,12 @@ export class BaseClient {
 		};
 
 		if (options.body && options.method !== "GET") {
-			requestInit.body = JSON.stringify(options.body);
+			if (typeof FormData !== "undefined" && options.body instanceof FormData) {
+				delete headers["Content-Type"];
+				requestInit.body = options.body;
+			} else {
+				requestInit.body = JSON.stringify(options.body);
+			}
 		}
 
 		try {

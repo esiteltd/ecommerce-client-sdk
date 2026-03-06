@@ -51,21 +51,19 @@ export class Customer extends BaseClient {
 		headers,
 		body,
 	}: {
-		headers: AuthHeaders;
 		body: z.infer<typeof createCustomerSchema>;
+		headers?: AuthHeaders;
 	}) {
 		const validatedBody = createCustomerSchema.parse(body);
 		const url = "/customer";
 		const result = await this.request(url, {
 			method: "POST",
-			headers: {
-				Authorization: "Bearer " + headers.authorization,
-			},
-			body: {
-				...validatedBody,
-				// TODO: Replace this with the actual value
-				tenant_id: null,
-			},
+			headers: headers
+				? {
+						Authorization: "Bearer " + headers.authorization,
+					}
+				: undefined,
+			body: validatedBody,
 		}).then((r) => r.json());
 
 		return customerSchema.parse(result);
@@ -113,12 +111,15 @@ export class Customer extends BaseClient {
 	}
 
 	async createAddress({
+		customerId,
 		body,
 	}: {
+		customerId?: string;
 		body: z.infer<typeof createAddressSchema>;
 	}) {
 		const validatedBody = createAddressSchema.parse(body);
-		const url = `/customer/${this.customerId}/address`;
+		const targetCustomerId = customerId ?? this.customerId;
+		const url = `/customer/${targetCustomerId}/address`;
 		const result = await this.request(url, {
 			method: "POST",
 			body: validatedBody,

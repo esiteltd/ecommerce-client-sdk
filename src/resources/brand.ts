@@ -4,16 +4,48 @@ import { brandListItemSchema, brandListSchema, createBrandSchema, updateBrandSch
 import { objectToURLSearchParams } from "../utils";
 
 export class Brand extends BaseClient {
+	private buildPublicBrandQuery(params: {
+		lang: string;
+		page: number;
+		size: number;
+		title?: string;
+		description?: string;
+		sort_by?: string;
+		order_by?: string;
+	}) {
+		return objectToURLSearchParams({
+			title: params.title,
+			description: params.description,
+			lang: params.lang,
+			sort_by: params.sort_by,
+			order_by: params.order_by,
+			page: params.page,
+			size: params.size,
+		});
+	}
+
 	async query({
 		query,
 	}: {
-		query: { locale: string; page: number; size: number };
+		query: {
+			locale: string;
+			page: number;
+			size: number;
+			title?: string;
+			description?: string;
+			sort_by?: string;
+			order_by?: string;
+		};
 	}) {
 		const result = await this.unauthenticatedRequest(
-			`/public/brand?${objectToURLSearchParams({
+			`/public/brand?${this.buildPublicBrandQuery({
+				title: query.title,
+				description: query.description,
+				lang: query.locale,
+				sort_by: query.sort_by,
+				order_by: query.order_by,
 				page: query.page,
 				size: query.size,
-				lang: query.locale,
 			})}`,
 			{
 				method: "GET",
@@ -22,9 +54,33 @@ export class Brand extends BaseClient {
 		return brandListSchema.parse(result);
 	}
 
-	async get({ page, size, lang }: { page: number; size: number; lang?: string }) {
+	async get({
+		page,
+		size,
+		lang,
+		title,
+		description,
+		sort_by,
+		order_by,
+	}: {
+		page: number;
+		size: number;
+		lang?: string;
+		title?: string;
+		description?: string;
+		sort_by?: string;
+		order_by?: string;
+	}) {
 		const result = await this.unauthenticatedRequest(
-			`/public/brand?${objectToURLSearchParams({ page, size, lang: lang || "en" })}`,
+			`/public/brand?${this.buildPublicBrandQuery({
+				title,
+				description,
+				lang: lang || "en",
+				sort_by,
+				order_by,
+				page,
+				size,
+			})}`,
 			{
 				method: "GET",
 			},

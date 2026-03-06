@@ -326,4 +326,12 @@ export class Order extends BaseClient {
 		}
 		return parsed.data;
 	}
+
+	async notifyShipment({ orderId }: { orderId: string }) {
+		const url = `/admin/order/${orderId}/notify-shipment`;
+		const result = await this.request(url, {
+			method: "POST",
+		}).then((r) => r.json());
+		return result;
+	}
 }

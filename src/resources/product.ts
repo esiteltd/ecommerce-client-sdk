@@ -287,4 +287,40 @@ export class Product extends BaseClient {
 		}
 		return parsed.data;
 	}
+
+	async updateReview({
+		productId,
+		reviewId,
+		body,
+	}: {
+		productId: string;
+		reviewId: string;
+		body: {
+			product_attribute_id?: string | null;
+			customer_id?: string;
+			rating?: number;
+			comment?: string;
+		};
+	}) {
+		const url = `/product/${productId}/rating/${reviewId}`;
+		const result = await this.request(url, {
+			method: "PUT",
+			body,
+		}).then((r) => r.json());
+		return result;
+	}
+
+	async deleteReview({
+		productId,
+		reviewId,
+	}: {
+		productId: string;
+		reviewId: string;
+	}) {
+		const url = `/product/${productId}/rating/${reviewId}`;
+		await this.request(url, {
+			method: "DELETE",
+		}).then((r) => r.json());
+		return;
+	}
 }

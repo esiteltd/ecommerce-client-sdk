@@ -68,8 +68,8 @@ export class Offer extends BaseClient {
 	}
 
 	async getActions() {
-		const response = await this.unauthenticatedRequest(
-			"/public/offers/actions",
+		const response = await this.request(
+			"/offers/actions",
 			{
 				method: "GET",
 			},
@@ -79,8 +79,8 @@ export class Offer extends BaseClient {
 	}
 
 	async getConditions() {
-		const response = await this.unauthenticatedRequest(
-			"/public/offers/conditions",
+		const response = await this.request(
+			"/offers/conditions",
 			{
 				method: "GET",
 			},

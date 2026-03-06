@@ -28,7 +28,7 @@ export class Branch extends BaseClient {
 		return branchItemSchema.parse(result);
 	}
 
-	async create({ body }: { body: z.infer<typeof createBranchSchema> }) {
+	async create({ body }: { body: z.input<typeof createBranchSchema> }) {
 		const validatedBody = createBranchSchema.parse(body);
 		const result = await this.request("/branch", {
 			method: "POST",

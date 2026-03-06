@@ -120,18 +120,29 @@ export const updateAddressSchema = z.object({
 });
 
 // Customer schemas
+const nullableLooseStringSchema = z
+	.union([z.string(), z.null(), z.undefined()])
+	.transform((value) => value ?? "");
+
+const localizedTextValueSchema = z.union([
+	z.string(),
+	z.record(z.string(), z.string()),
+	z.null(),
+]);
+
+const boolishValueSchema = z.union([z.boolean(), z.number(), z.string(), z.null()]).optional();
+
 export const customerSchema = z.object({
 	id: z.string(),
-	external_user_id: z.string(),
-	firstname: z.string(),
-	lastname: z.string(),
-	language: z.string(),
-	// Phone can be empty string, null, or valid E.164 format
-	phonenumber: z.union([phoneSchema, z.literal(""), z.null()]).transform(v => v ?? ""),
-	email: z.string(),
-	gender: z.number(),
-	date_of_birth: z.string().nullable(),
-	verified: z.boolean().optional(),
+	external_user_id: nullableLooseStringSchema,
+	firstname: nullableLooseStringSchema,
+	lastname: nullableLooseStringSchema,
+	language: nullableLooseStringSchema,
+	phonenumber: nullableLooseStringSchema,
+	email: nullableLooseStringSchema,
+	gender: z.number().nullish().transform((value) => value ?? 0),
+	date_of_birth: z.string().nullable().optional().default(null),
+	verified: z.boolean().nullish().transform((value) => value ?? false),
 	deleted_at: z.string().nullable().optional(),
 	created_at: z.string().optional(),
 	tenant_id: z.string().nullable().optional(),
@@ -865,9 +876,11 @@ export const brandListItemSchema = z.object({
 	id: z.string(),
 	tenant_id: z.string().nullable().optional(),
 	media_id: z.string().nullable().optional(),
+	image: z.string().nullable().optional(),
 	title: z.string(),
 	description: z.string().nullable().optional(),
 	deleted: z.boolean().optional(),
+	updated_at: z.string().optional(),
 	created_at: z.string().optional(),
 });
 
@@ -1150,8 +1163,8 @@ export const postCategoryItemSchema = z.object({
 	id: z.string(),
 	tenant_id: z.string(),
 	image: z.string().nullable().optional(),
-	title: z.string().nullable(),
-	enabled: z.boolean(),
+	title: localizedTextValueSchema.optional(),
+	enabled: boolishValueSchema,
 	external_user_id: z.string().nullable().optional(),
 	deleted_at: z.string().nullable().optional(),
 	updated_at: z.string().optional(),
@@ -1162,9 +1175,9 @@ export const postCategoryItemSchema = z.object({
 				id: z.string(),
 				tenant_id: z.string(),
 				image: z.string().nullable().optional(),
-				title: z.string().nullable(),
-				description: z.string().nullable().optional(),
-				enabled: z.boolean(),
+				title: localizedTextValueSchema.optional(),
+				description: localizedTextValueSchema.optional(),
+				enabled: boolishValueSchema,
 				external_user_id: z.string().nullable().optional(),
 				deleted_at: z.string().nullable().optional(),
 				updated_at: z.string().optional(),
@@ -1184,8 +1197,8 @@ export const postCategoryListSchema = z.object({
 			id: z.string(),
 			tenant_id: z.string(),
 			image: z.string().nullable().optional(),
-			title: z.string().nullable(),
-			enabled: z.boolean(),
+			title: localizedTextValueSchema.optional(),
+			enabled: boolishValueSchema,
 			external_user_id: z.string().nullable().optional(),
 			deleted_at: z.string().nullable().optional(),
 			updated_at: z.string().optional(),
@@ -1206,9 +1219,9 @@ export const postItemSchema = z.object({
 	id: z.string(),
 	tenant_id: z.string(),
 	image: z.string().nullable().optional(),
-	title: z.string().nullable(),
-	description: z.string().nullable().optional(),
-	enabled: z.boolean(),
+	title: localizedTextValueSchema.optional(),
+	description: localizedTextValueSchema.optional(),
+	enabled: boolishValueSchema,
 	external_user_id: z.string().nullable().optional(),
 	deleted_at: z.string().nullable().optional(),
 	updated_at: z.string().optional(),
@@ -1253,8 +1266,8 @@ export const postItemSchema = z.object({
 			z.object({
 				id: z.string(),
 				tenant_id: z.string(),
-				title: z.string().nullable(),
-				enabled: z.boolean(),
+				title: localizedTextValueSchema.optional(),
+				enabled: boolishValueSchema,
 				external_user_id: z.string().nullable().optional(),
 				deleted_at: z.string().nullable().optional(),
 				updated_at: z.string().optional(),
@@ -1270,8 +1283,8 @@ export const postItemSchema = z.object({
 				id: z.string(),
 				tenant_id: z.string(),
 				image: z.string().nullable().optional(),
-				title: z.string().nullable(),
-				enabled: z.boolean(),
+				title: localizedTextValueSchema.optional(),
+				enabled: boolishValueSchema,
 				external_user_id: z.string().nullable().optional(),
 				deleted_at: z.string().nullable().optional(),
 				updated_at: z.string().optional(),
@@ -1289,9 +1302,9 @@ export const postListSchema = z.object({
 			id: z.string(),
 			tenant_id: z.string(),
 			image: z.string().nullable().optional(),
-			title: z.string().nullable(),
-			description: z.string().nullable().optional(),
-			enabled: z.boolean(),
+			title: localizedTextValueSchema.optional(),
+			description: localizedTextValueSchema.optional(),
+			enabled: boolishValueSchema,
 			external_user_id: z.string().nullable().optional(),
 			deleted_at: z.string().nullable().optional(),
 			updated_at: z.string().optional(),
@@ -1315,11 +1328,11 @@ export const offerItemSchema = z.object({
 	tenant_id: z.string(),
 	vendor_id: z.string().nullable().optional(),
 	status: z.string(),
-	unique_name: z.string(),
-	name: z.string(),
+	unique_name: z.string().nullable().optional(),
+	name: z.string().nullable().optional(),
 	description: z.string().nullable().optional(),
-	conditions: z.string().nullable().optional(),
-	actions: z.string().nullable().optional(),
+	conditions: z.unknown().nullable().optional(),
+	actions: z.unknown().nullable().optional(),
 	is_stackable: z.boolean(),
 	created_by_id: z.string().nullable().optional(),
 	started_at: z.string().nullable().optional(),
@@ -1368,11 +1381,40 @@ export type OfferAction = z.infer<typeof offerActionSchema>;
 export type OfferCondition = z.infer<typeof offerConditionSchema>;
 
 // ─── Offer Admin schemas ──────────────────────────────────────────────────────
+const offerTextMutationFieldSchema = z.preprocess((value) => {
+	if (typeof value === "string") {
+		const trimmed = value.trim();
+		return trimmed.length > 0 ? trimmed : undefined;
+	}
+
+	if (value && typeof value === "object" && !Array.isArray(value)) {
+		const firstValue = Object.values(value as Record<string, unknown>).find(
+			(entry) => typeof entry === "string" && entry.trim().length > 0,
+		);
+		return typeof firstValue === "string" ? firstValue.trim() : undefined;
+	}
+
+	return value;
+}, z.string().optional());
+
+const offerRulesMutationFieldSchema = z.preprocess((value) => {
+	if (typeof value === "string") {
+		const trimmed = value.trim();
+		return trimmed.length > 0 ? trimmed : undefined;
+	}
+
+	if (Array.isArray(value)) {
+		return value.length > 0 ? JSON.stringify(value) : undefined;
+	}
+
+	return value;
+}, z.string().optional());
+
 export const createOfferSchema = z.object({
-	title: z.record(z.string(), z.string()).optional(),
-	description: z.record(z.string(), z.string()).optional(),
-	conditions: z.array(z.unknown()).optional(),
-	actions: z.array(z.unknown()).optional(),
+	title: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+	description: offerTextMutationFieldSchema,
+	conditions: offerRulesMutationFieldSchema,
+	actions: offerRulesMutationFieldSchema,
 	status: z.string().optional(),
 	start_at: z.string().optional(),
 	end_at: z.string().optional(),
@@ -1509,9 +1551,18 @@ export const polygonPointSchema = z.object({
 	longitude: z.number(),
 });
 
+const geoZoneDeliveryCostSchema = z
+	.union([z.string(), z.number()])
+	.transform((value) =>
+		typeof value === "number" ? String(value) : value.trim(),
+	)
+	.refine((value) => value.length > 0, {
+		message: "Delivery cost is required",
+	});
+
 export const geoZoneInputSchema = z.object({
 	name: z.string(),
-	delivery_cost: z.number(),
+	delivery_cost: geoZoneDeliveryCostSchema,
 	polygon: z.array(polygonPointSchema),
 });
 
@@ -1539,9 +1590,9 @@ export const branchOrderListSchema = z.object({
 });
 
 export type PolygonPoint = z.infer<typeof polygonPointSchema>;
-export type GeoZoneInput = z.infer<typeof geoZoneInputSchema>;
+export type GeoZoneInput = z.input<typeof geoZoneInputSchema>;
 export type DriverInput = z.infer<typeof driverInputSchema>;
-export type CreateBranch = z.infer<typeof createBranchSchema>;
+export type CreateBranch = z.input<typeof createBranchSchema>;
 export type UpdateBranch = z.infer<typeof updateBranchSchema>;
 
 // ─── Brand Admin schemas ──────────────────────────────────────────────────────
@@ -1674,6 +1725,7 @@ export const createPostSchema = z.object({
 	tag_ids: z.array(z.string()).optional(),
 	category_ids: z.array(z.string()).optional(),
 	media_id: z.string().optional(),
+	enabled: z.boolean().optional(),
 	status: z.string().optional(),
 	published_at: z.string().optional(),
 });
@@ -1844,7 +1896,7 @@ export const couponItemSchema = z.object({
 	discount_type: z.string().nullable().optional(),
 	discount_value: z.number().nullable().optional(),
 	target_type: z.string().nullable().optional(),
-	target_ids: z.array(z.string()).nullable().optional(),
+	target_ids: z.union([z.array(z.string()), z.string(), z.null()]).optional(),
 	conditions: z.unknown().nullable().optional(),
 	max_discount_amount: z.number().nullable().optional(),
 	min_order_value: z.number().nullable().optional(),

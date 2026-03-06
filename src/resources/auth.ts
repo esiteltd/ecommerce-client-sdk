@@ -3,9 +3,17 @@ import { createAddressSchema, loginResponseSchema, registerResponseSchema } from
 import { BaseClient, SDKError } from "../client/base-client";
 
 export class Auth extends BaseClient {
+	private requireAuthUrl(): string {
+		if (!this.authUrl) {
+			throw new SDKError("Auth URL is not configured");
+		}
+
+		return this.authUrl;
+	}
+
 	async refreshToken({ refreshToken }: { refreshToken: string }) {
 		const response = await this.unauthenticatedRequest(
-			`${this.authUrl}/refresh`,
+			`${this.requireAuthUrl()}/refresh`,
 			{ method: "POST", body: { refresh: refreshToken } },
 		);
 
@@ -63,6 +71,80 @@ export class Auth extends BaseClient {
 			method: "POST",
 		});
 	}
+
+	async verifyUser({ tenant }: { tenant?: string } = {}) {
+		const queryParams = new URLSearchParams();
+		if (tenant ?? this.tenant) {
+			queryParams.set("tenant", tenant ?? this.tenant);
+		}
+
+		const url = `${this.requireAuthUrl()}/verify-user${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+		const response = await this.request(url, { method: "GET" });
+		return response.json();
+	}
+
+	async permissionCheck({
+		permissionId,
+		username,
+		uri,
+		method,
+		tag,
+		tenant,
+		token,
+	}: {
+		permissionId: string | number;
+		username: string;
+		uri: string;
+		method: string;
+		tag: string;
+		tenant?: string;
+		token?: string;
+	}) {
+		const queryParams = new URLSearchParams({
+			permissionId: String(permissionId),
+			username,
+			uri,
+			method,
+			tag,
+		});
+
+		if (tenant ?? this.tenant) {
+			queryParams.set("tenant", tenant ?? this.tenant);
+		}
+
+		if (token) {
+			queryParams.set("token", token);
+		}
+
+		const url = `${this.requireAuthUrl()}/permission/check?${queryParams.toString()}`;
+		const response = await this.request(url, { method: "GET" });
+		return response.json();
+	}
+
+	async getTenantConfig({
+		tenant,
+		apiKey,
+		accessToken,
+	}: {
+		tenant: string;
+		apiKey: string;
+		accessToken?: string | null;
+	}) {
+		const authOrigin = new URL(this.requireAuthUrl()).origin;
+		const response = await this.unauthenticatedRequest(
+			`${authOrigin}/api/v1/auth/tenant-config/${tenant}`,
+			{
+				method: "GET",
+				headers: {
+					...(accessToken ? { authorization: `Bearer ${accessToken}` } : {}),
+					"x-api-tenant": tenant,
+					"x-api-key": apiKey,
+				},
+			},
+		);
+		return response.json();
+	}
+
 	async register({
 		firstName,
 		lastName,
