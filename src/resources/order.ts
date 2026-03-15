@@ -17,6 +17,20 @@ import {
 import { BaseClient } from "../client/base-client";
 import { objectToURLSearchParams } from "../utils";
 
+type AdminOrderShipmentStatus = "pending" | "shipped" | "delivered" | "returned" | "failed";
+type AdminOrderPaymentStatus = -1 | 0 | 1 | 2 | 3 | 4;
+type AdminOrderCurrentStepKind =
+	| "order.accepted"
+	| "order.canceled"
+	| "payment.failed"
+	| "payment.pending"
+	| "payment.partial_paid"
+	| "payment.paid"
+	| "payment.overpaid"
+	| "shipment.created"
+	| "shipment.failed"
+	| "branch.approved";
+
 export class Order extends BaseClient {
 	async getShippingRates({
 		body,
@@ -197,23 +211,33 @@ export class Order extends BaseClient {
 		query,
 	}: {
 		query: {
-			status?: number;
+			status?: AdminOrderPaymentStatus;
+			payment_status?: AdminOrderPaymentStatus;
 			page?: number;
 			size?: number;
 			customer_id?: string;
 			start?: string;
 			end?: string;
+			shipment_status?: AdminOrderShipmentStatus;
+			canceled?: boolean;
+			current_step_kind?: AdminOrderCurrentStepKind;
+			kind?: AdminOrderCurrentStepKind;
 			sort_by?: string;
 			order_by?: 'asc' | 'desc';
 		};
 	}) {
+		const paymentStatus = query.payment_status ?? query.status;
+		const currentStepKind = query.current_step_kind ?? query.kind;
 		const url = "/admin/order?" + objectToURLSearchParams({
 			page: query.page ?? 1,
 			size: query.size ?? 10,
-			...(query.status !== undefined ? { status: query.status } : {}),
+			...(paymentStatus !== undefined ? { status: paymentStatus } : {}),
 			...(query.customer_id ? { customer_id: query.customer_id } : {}),
 			...(query.start ? { start: query.start } : {}),
 			...(query.end ? { end: query.end } : {}),
+			...(query.shipment_status ? { shipment_status: query.shipment_status } : {}),
+			...(query.canceled !== undefined ? { canceled: query.canceled } : {}),
+			...(currentStepKind ? { current_step_kind: currentStepKind } : {}),
 			...(query.sort_by ? { sort_by: query.sort_by } : {}),
 			...(query.order_by ? { order_by: query.order_by } : {}),
 		});
