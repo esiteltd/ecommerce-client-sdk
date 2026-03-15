@@ -31,7 +31,53 @@ type AdminOrderCurrentStepKind =
 	| "shipment.failed"
 	| "branch.approved";
 
+type OrderSortDirection = "asc" | "desc";
+
+type OrderListQuery = {
+	status?: number;
+	payment_status?: number;
+	page?: number;
+	size?: number;
+	locale?: string;
+	sort_by?: string;
+	order_by?: OrderSortDirection;
+};
+
+type AdminOrderQuery = {
+	status?: AdminOrderPaymentStatus;
+	payment_status?: AdminOrderPaymentStatus;
+	page?: number;
+	size?: number;
+	number?: string;
+	customer_id?: string;
+	address_id?: string;
+	total_price?: number;
+	created_at?: string;
+	start?: string;
+	end?: string;
+	shipment_status?: AdminOrderShipmentStatus;
+	payment_id?: string;
+	payment_provider?: string;
+	payment_created_at?: string;
+	canceled?: boolean;
+	current_step_kind?: AdminOrderCurrentStepKind;
+	kind?: AdminOrderCurrentStepKind;
+	sort_by?: string;
+	order_by?: OrderSortDirection;
+};
+
 export class Order extends BaseClient {
+	private withTenantQuery(
+		endpoint: string,
+		query: Record<string, string | number | boolean | null | undefined> = {},
+	) {
+		const params = objectToURLSearchParams({
+			tenant: this.tenant || undefined,
+			...query,
+		});
+		return params ? `${endpoint}?${params}` : endpoint;
+	}
+
 	async getShippingRates({
 		body,
 	}: {
@@ -70,8 +116,10 @@ export class Order extends BaseClient {
 		return parsed.data;
 	}
 
-	async get({ orderId }: { orderId: string }) {
-		const url = `/order/${orderId}`;
+	async get({ orderId, locale }: { orderId: string; locale?: string }) {
+		const url = this.withTenantQuery(`/order/${orderId}`, {
+			...(locale ? { locale } : {}),
+		});
 		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
 		}).then((r) => r.json());
@@ -88,8 +136,10 @@ export class Order extends BaseClient {
 		return parsed.data;
 	}
 
-	async adminGet({ orderId }: { orderId: string }) {
-		const url = `/admin/order/${orderId}`;
+	async adminGet({ orderId, locale }: { orderId: string; locale?: string }) {
+		const url = this.withTenantQuery(`/admin/order/${orderId}`, {
+			...(locale ? { locale } : {}),
+		});
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
@@ -166,25 +216,27 @@ export class Order extends BaseClient {
 	async query({
 		query,
 	}: {
-		query: {
-			status?: number;
-			page?: number;
-			size?: number;
-			locale: string;
-		};
+		query: OrderListQuery;
 	}) {
+		const paymentStatus = query.payment_status ?? query.status;
 		const queryParams: Record<string, string> = {
 			page: (query.page || 1).toString(),
 			size: (query.size || 10).toString(),
 			include_products: "true",
-			locale: query.locale,
+			sort_by: query.sort_by ?? "created_at",
+			order_by: query.order_by ?? "desc",
 		};
 
-		if (query.status !== undefined) {
-			queryParams.status = query.status.toString();
+		if (query.locale) {
+			queryParams.locale = query.locale;
 		}
 
-		const url = "/order?" + new URLSearchParams(queryParams);
+		if (paymentStatus !== undefined) {
+			queryParams.status = paymentStatus.toString();
+			queryParams.payment_status = paymentStatus.toString();
+		}
+
+		const url = this.withTenantQuery("/order", queryParams);
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
@@ -210,36 +262,33 @@ export class Order extends BaseClient {
 	async adminQuery({
 		query,
 	}: {
-		query: {
-			status?: AdminOrderPaymentStatus;
-			payment_status?: AdminOrderPaymentStatus;
-			page?: number;
-			size?: number;
-			customer_id?: string;
-			start?: string;
-			end?: string;
-			shipment_status?: AdminOrderShipmentStatus;
-			canceled?: boolean;
-			current_step_kind?: AdminOrderCurrentStepKind;
-			kind?: AdminOrderCurrentStepKind;
-			sort_by?: string;
-			order_by?: 'asc' | 'desc';
-		};
+		query: AdminOrderQuery;
 	}) {
 		const paymentStatus = query.payment_status ?? query.status;
 		const currentStepKind = query.current_step_kind ?? query.kind;
-		const url = "/admin/order?" + objectToURLSearchParams({
+		const url = this.withTenantQuery("/admin/order", {
 			page: query.page ?? 1,
 			size: query.size ?? 10,
-			...(paymentStatus !== undefined ? { status: paymentStatus } : {}),
+			sort_by: query.sort_by ?? "created_at",
+			order_by: query.order_by ?? "desc",
+			...(paymentStatus !== undefined
+				? { status: paymentStatus, payment_status: paymentStatus }
+				: {}),
+			...(query.number ? { number: query.number } : {}),
 			...(query.customer_id ? { customer_id: query.customer_id } : {}),
+			...(query.address_id ? { address_id: query.address_id } : {}),
+			...(query.total_price !== undefined ? { total_price: query.total_price } : {}),
+			...(query.created_at ? { created_at: query.created_at } : {}),
 			...(query.start ? { start: query.start } : {}),
 			...(query.end ? { end: query.end } : {}),
 			...(query.shipment_status ? { shipment_status: query.shipment_status } : {}),
+			...(query.payment_id ? { payment_id: query.payment_id } : {}),
+			...(query.payment_provider ? { payment_provider: query.payment_provider } : {}),
+			...(query.payment_created_at ? { payment_created_at: query.payment_created_at } : {}),
 			...(query.canceled !== undefined ? { canceled: query.canceled } : {}),
-			...(currentStepKind ? { current_step_kind: currentStepKind } : {}),
-			...(query.sort_by ? { sort_by: query.sort_by } : {}),
-			...(query.order_by ? { order_by: query.order_by } : {}),
+			...(currentStepKind
+				? { current_step_kind: currentStepKind, kind: currentStepKind }
+				: {}),
 		});
 		const result = await this.request(url, {
 			method: "GET",

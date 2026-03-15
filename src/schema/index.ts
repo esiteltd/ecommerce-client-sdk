@@ -971,8 +971,11 @@ export const supplierLocaleSchema = z.object({
 	id: z.string().optional(),
 	supplier_id: z.string().optional(),
 	lang: z.string().optional(),
+	locale: z.string().optional(),
 	title: z.string().optional(),
 	description: z.string().optional(),
+	type: z.string().optional(),
+	value: z.string().optional(),
 });
 
 export const supplierListItemSchema = z.object({
