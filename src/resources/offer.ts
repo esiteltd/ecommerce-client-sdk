@@ -21,13 +21,7 @@ async function safeJson<T>(response: Response, fallback: T): Promise<T> {
 }
 
 export class Offer extends BaseClient {
-	async get({
-		id,
-		lang = "en",
-	}: {
-		id: string;
-		lang?: string;
-	}) {
+	async get({ id, lang = "en" }: { id: string; lang?: string }) {
 		const response = await this.unauthenticatedRequest(
 			`/public/offers/${id}?${objectToURLSearchParams({ lang })}`,
 			{
@@ -63,28 +57,27 @@ export class Offer extends BaseClient {
 				method: "GET",
 			},
 		);
-		const result = await safeJson(response, { items: [], total: 0, page, size });
+		const result = await safeJson(response, {
+			items: [],
+			total: 0,
+			page,
+			size,
+		});
 		return offerListSchema.parse(result);
 	}
 
 	async getActions() {
-		const response = await this.request(
-			"/offers/actions",
-			{
-				method: "GET",
-			},
-		);
+		const response = await this.request("/public/offers/actions", {
+			method: "GET",
+		});
 		const result = await safeJson(response, []);
 		return offerActionsSchema.parse(result);
 	}
 
 	async getConditions() {
-		const response = await this.request(
-			"/offers/conditions",
-			{
-				method: "GET",
-			},
-		);
+		const response = await this.request("/public/offers/conditions", {
+			method: "GET",
+		});
 		const result = await safeJson(response, []);
 		return offerConditionsSchema.parse(result);
 	}
