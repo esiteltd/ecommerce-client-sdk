@@ -24,6 +24,18 @@ export const mediaSchema = z.object({
 	alt: z.string(),
 });
 
+export const brandImageSchema = z
+	.union([
+		z.string(),
+		mediaSchema.extend({
+			tenant_id: z.string().optional(),
+			created_at: z.string().optional(),
+			updated_at: z.string().optional(),
+		}),
+	])
+	.nullable()
+	.optional();
+
 // Type definitions
 export type AuthHeaders = {
 	authorization: string;
@@ -876,7 +888,7 @@ export const brandListItemSchema = z.object({
 	id: z.string(),
 	tenant_id: z.string().nullable().optional(),
 	media_id: z.string().nullable().optional(),
-	image: z.string().nullable().optional(),
+	image: brandImageSchema,
 	title: z.string(),
 	description: z.string().nullable().optional(),
 	deleted: z.boolean().optional(),
