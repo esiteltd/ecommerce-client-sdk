@@ -7,6 +7,7 @@ export interface SDKConfig {
 	retries?: number;
 	auth?: {
 		authUrl?: string | null;
+		loginUrl?: string | null;
 		getAccessToken: () => string | null;
 		getRefreshToken: () => string | null;
 		getCustomerId: () => string | null;
@@ -45,6 +46,10 @@ export class BaseClient {
 
 	get authUrl(): string | null {
 		return this.config.auth?.authUrl ?? null;
+	}
+
+	get loginUrl(): string | null {
+		return this.config.auth?.loginUrl ?? null;
 	}
 
 	constructor(config: SDKConfig) {

@@ -11,6 +11,14 @@ export class Auth extends BaseClient {
 		return this.authUrl;
 	}
 
+	private resolveLoginUrl(pathWithQuery: string): string {
+		if (!this.loginUrl) {
+			return pathWithQuery;
+		}
+
+		return `${this.loginUrl}${pathWithQuery.replace("/public/auth", "")}`;
+	}
+
 	async refreshToken({ refreshToken }: { refreshToken: string }) {
 		const response = await this.unauthenticatedRequest(
 			`${this.requireAuthUrl()}/refresh`,
@@ -40,7 +48,8 @@ export class Auth extends BaseClient {
 			queryParams.set("no-challenge", "true");
 		}
 
-		const url = `/public/auth/login${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+		const defaultPath = `/public/auth/login${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+		const url = this.resolveLoginUrl(defaultPath);
 
 		const response = await this.unauthenticatedRequest(url, {
 			method: "POST",
@@ -67,7 +76,7 @@ export class Auth extends BaseClient {
 	}
 
 	async logout() {
-		await this.request("/logout", {
+		await this.request(`${this.requireAuthUrl()}/logout`, {
 			method: "POST",
 		});
 	}
