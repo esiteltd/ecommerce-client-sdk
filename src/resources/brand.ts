@@ -102,7 +102,7 @@ export class Brand extends BaseClient {
 		const result = await this.request("/brand", {
 			method: "POST",
 			body: validatedBody,
-		}).then((r) => r.json());
+		}).then((r) => this.parseJsonResponse(r));
 		return result;
 	}
 
@@ -117,21 +117,21 @@ export class Brand extends BaseClient {
 		const result = await this.request(`/brand/${id}`, {
 			method: "PUT",
 			body: validatedBody,
-		}).then((r) => r.json());
+		}).then((r) => this.parseJsonResponse(r));
 		return result;
 	}
 
 	async delete({ id }: { id: string }) {
 		await this.request(`/brand/${id}`, {
 			method: "DELETE",
-		}).then((r) => r.json());
+		}).then((r) => this.parseJsonResponse(r));
 		return;
 	}
 
 	async deleteLocale({ id, locale }: { id: string; locale: string }) {
 		await this.request(`/brand/${id}/locale/${locale}`, {
 			method: "DELETE",
-		}).then((r) => r.json());
+		}).then((r) => this.parseJsonResponse(r));
 		return;
 	}
 }

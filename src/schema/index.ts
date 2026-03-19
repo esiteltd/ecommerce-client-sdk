@@ -1602,6 +1602,7 @@ export type UpdateBranch = z.infer<typeof updateBranchSchema>;
 export const createBrandSchema = z.object({
 	name: z.string(),
 	image: z.string().optional(),
+	media_id: z.string().optional(),
 	title: z.record(z.string(), z.string()).optional(),
 	description: z.record(z.string(), z.string()).optional(),
 });

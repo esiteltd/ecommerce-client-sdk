@@ -214,6 +214,26 @@ export class BaseClient {
 		}
 	}
 
+	protected async parseJsonResponse<T = unknown>(
+		response: Response,
+	): Promise<T | string | undefined> {
+		if (response.status === 204) return undefined;
+
+		const responseText = await response.text();
+		if (!responseText.trim()) return undefined;
+
+		const contentType = response.headers.get("content-type") ?? "";
+		if (!contentType.includes("application/json")) {
+			try {
+				return JSON.parse(responseText) as T;
+			} catch {
+				return responseText;
+			}
+		}
+
+		return JSON.parse(responseText) as T;
+	}
+
 	private async fetchWithRetry(
 		url: string,
 		init: RequestInit,
