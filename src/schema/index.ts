@@ -57,7 +57,7 @@ export const loginResponseSchema = z.object({
 	access_token_expiration: z.number(),
 	refresh_token_expiration: z.number(),
 	user: authUserSchema,
-	customer: z.lazy(() => customerSchema).nullable(),
+	customer: z.lazy(() => customerSchema).nullish().default(null),
 	address: z.lazy(() => addressSchema).nullish(),
 });
 
