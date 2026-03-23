@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BaseClient } from "../client/base-client";
 import {
+	adminPlaceholderItemSchema,
 	createPlaceholderSchema,
 	placeholderItemSchema,
 	placeholderListSchema,
@@ -32,6 +33,13 @@ export class Placeholder extends BaseClient {
 			{ method: "GET" },
 		).then((r) => r.json());
 		return placeholderItemSchema.parse(result);
+	}
+
+	async adminGetById({ id }: { id: string }) {
+		const result = await this.request(`/placeholder/${id}`, {
+			method: "GET",
+		}).then((r) => r.json());
+		return adminPlaceholderItemSchema.parse(result);
 	}
 
 	async create({ body }: { body: z.infer<typeof createPlaceholderSchema> }) {

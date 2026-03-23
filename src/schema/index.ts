@@ -36,6 +36,26 @@ export const brandImageSchema = z
 	.nullable()
 	.optional();
 
+const productSupplierLocaleSchema = z.object({
+	id: z.string().optional(),
+	supplier_id: z.string().optional(),
+	lang: z.string().optional(),
+	locale: z.string().optional(),
+	title: z.string().optional(),
+	type: z.string().optional(),
+	value: z.string().optional(),
+});
+
+const productSupplierSchema = z.union([
+	z.string(),
+	z.object({
+		id: z.string(),
+		name: z.string().nullable().optional(),
+		title: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+		locales: z.array(productSupplierLocaleSchema).optional().default([]),
+	}),
+]);
+
 // Type definitions
 export type AuthHeaders = {
 	authorization: string;
@@ -244,6 +264,7 @@ export const productSchema = z.object({
 	categories: z.array(categorySchema).nullish().default([]),
 	brands: z.array(brandSchema).nullish().default([]),
 	supplier_id: z.string().nullable().optional(),
+	suppliers: z.array(productSupplierSchema).optional().default([]),
 });
 
 export const productListItemSchema = z.object({
@@ -265,6 +286,7 @@ export const productListItemSchema = z.object({
 	brand_id: z.string().nullable(),
 	brand_title: z.string().nullable(),
 	supplier_id: z.string().nullable().optional(),
+	suppliers: z.array(productSupplierSchema).optional().default([]),
 	attributes: z.array(
 		z.object({
 			id: z.string().optional(),
@@ -1547,6 +1569,8 @@ export const createProductSchema = z.object({
 	brands: z.array(z.string()).optional(),
 	categories: z.array(z.string()).optional(),
 	supplier_id: z.string().nullable().optional(),
+	supplier_ids: z.array(z.string()).optional(),
+	suppliers: z.array(z.string()).optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();
@@ -1902,6 +1926,7 @@ export const adminProductSchema = z.object({
 		}),
 	).optional().default([]),
 	supplier_id: z.string().nullable().optional(),
+	suppliers: z.array(productSupplierSchema).optional().default([]),
 });
 
 export type AdminProduct = z.infer<typeof adminProductSchema>;
@@ -1979,6 +2004,18 @@ export const placeholderItemSchema = z.object({
 	updated_at: z.string().optional(),
 });
 
+export const adminPlaceholderItemSchema = z.object({
+	id: z.string(),
+	parent_id: z.string().nullable().optional(),
+	media_id: z.string().nullable().optional(),
+	title: z.record(z.string(), z.string()).optional().default({}),
+	description: z.record(z.string(), z.string()).optional().default({}),
+	tenant_id: z.string().optional(),
+	deleted_at: z.string().nullable().optional(),
+	created_at: z.string().optional(),
+	updated_at: z.string().optional(),
+});
+
 export const placeholderListSchema = z.object({
 	items: z.array(placeholderItemSchema),
 	page: z.number(),
@@ -1996,6 +2033,7 @@ export const createPlaceholderSchema = z.object({
 export const updatePlaceholderSchema = createPlaceholderSchema.partial();
 
 export type PlaceholderItem = z.infer<typeof placeholderItemSchema>;
+export type AdminPlaceholderItem = z.infer<typeof adminPlaceholderItemSchema>;
 export type PlaceholderList = z.infer<typeof placeholderListSchema>;
 export type CreatePlaceholder = z.infer<typeof createPlaceholderSchema>;
 export type UpdatePlaceholder = z.infer<typeof updatePlaceholderSchema>;
