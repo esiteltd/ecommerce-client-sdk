@@ -243,6 +243,7 @@ export const productSchema = z.object({
 	media: z.array(mediaSchema).nullish().default([]),
 	categories: z.array(categorySchema).nullish().default([]),
 	brands: z.array(brandSchema).nullish().default([]),
+	supplier_id: z.string().nullable().optional(),
 });
 
 export const productListItemSchema = z.object({
@@ -263,6 +264,7 @@ export const productListItemSchema = z.object({
 	category_title: z.string().nullable(),
 	brand_id: z.string().nullable(),
 	brand_title: z.string().nullable(),
+	supplier_id: z.string().nullable().optional(),
 	attributes: z.array(
 		z.object({
 			id: z.string().optional(),
@@ -1544,6 +1546,7 @@ export const createProductSchema = z.object({
 	media: z.array(z.string()).optional(),
 	brands: z.array(z.string()).optional(),
 	categories: z.array(z.string()).optional(),
+	supplier_id: z.string().nullable().optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();
@@ -1898,6 +1901,7 @@ export const adminProductSchema = z.object({
 			children: z.array(z.unknown()).optional(),
 		}),
 	).optional().default([]),
+	supplier_id: z.string().nullable().optional(),
 });
 
 export type AdminProduct = z.infer<typeof adminProductSchema>;
