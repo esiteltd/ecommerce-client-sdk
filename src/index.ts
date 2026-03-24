@@ -21,6 +21,7 @@ import { Product } from "./resources/product";
 import { StaticData } from "./resources/static-data";
 import { Supplier } from "./resources/supplier";
 import { Tenant } from "./resources/tenant";
+import { Testimonial } from "./resources/testimonial";
 import { TGS } from "./resources/tgs";
 
 export class EcommerceSDK {
@@ -36,6 +37,7 @@ export class EcommerceSDK {
 	public readonly branch: Branch;
 	public readonly brand: Brand;
 	public readonly supplier: Supplier;
+	public readonly testimonial: Testimonial;
 	public readonly menu: Menu;
 	public readonly staticData: StaticData;
 	public readonly contactUs: ContactUs;
@@ -62,6 +64,7 @@ export class EcommerceSDK {
 		this.branch = new Branch(config);
 		this.brand = new Brand(config);
 		this.supplier = new Supplier(config);
+		this.testimonial = new Testimonial(config);
 		this.menu = new Menu(config);
 		this.staticData = new StaticData(config);
 		this.contactUs = new ContactUs(config);

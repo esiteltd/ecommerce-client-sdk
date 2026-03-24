@@ -1037,6 +1037,30 @@ export type SupplierLocale = z.infer<typeof supplierLocaleSchema>;
 export type SupplierListItem = z.infer<typeof supplierListItemSchema>;
 export type SupplierList = z.infer<typeof supplierListSchema>;
 
+// Testimonial schemas
+export const testimonialItemSchema = z.object({
+	id: z.string(),
+	tenant_id: z.string(),
+	name: localizedTextValueSchema.optional(),
+	position: localizedTextValueSchema.optional(),
+	business_logo_media_id: z.string().nullable().optional(),
+	testimonial: localizedTextValueSchema.optional(),
+	enabled: boolishValueSchema,
+	deleted_at: z.string().nullable().optional(),
+	updated_at: z.string().optional(),
+	created_at: z.string().optional(),
+});
+
+export const testimonialListSchema = z.object({
+	items: z.array(testimonialItemSchema),
+	page: z.number(),
+	size: z.number(),
+	total: z.number(),
+});
+
+export type TestimonialItem = z.infer<typeof testimonialItemSchema>;
+export type TestimonialList = z.infer<typeof testimonialListSchema>;
+
 // Static Data schemas
 export const staticDataItemSchema = z.object({
 	id: z.string(),
@@ -1823,6 +1847,20 @@ export const updateStaticDataSchema = createStaticDataSchema.partial();
 
 export type CreateStaticData = z.infer<typeof createStaticDataSchema>;
 export type UpdateStaticData = z.infer<typeof updateStaticDataSchema>;
+
+// ─── Testimonial Admin schemas ────────────────────────────────────────────────
+export const createTestimonialSchema = z.object({
+	name: z.record(z.string(), z.string()),
+	position: z.record(z.string(), z.string()),
+	business_logo_media_id: z.string().min(1),
+	testimonial: z.record(z.string(), z.string()),
+	enabled: z.boolean().optional(),
+});
+
+export const updateTestimonialSchema = createTestimonialSchema.partial();
+
+export type CreateTestimonial = z.infer<typeof createTestimonialSchema>;
+export type UpdateTestimonial = z.infer<typeof updateTestimonialSchema>;
 
 // ─── Contact Us Admin schemas ─────────────────────────────────────────────────
 export const updateContactUsSchema = z.object({
