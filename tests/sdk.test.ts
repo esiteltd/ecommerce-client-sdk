@@ -83,4 +83,67 @@ describe("EcommerceSDK", () => {
 			);
 		});
 	});
+
+	describe("Order Resource", () => {
+		it("should request shipping rates with authorization when auth is configured", async () => {
+			sdk = new EcommerceSDK({
+				baseUrl: "https://api.example.com",
+				tenant: "test-tenant",
+				auth: {
+					getAccessToken: () => "test-access-token",
+					getRefreshToken: () => null,
+					getCustomerId: () => "customer-1",
+					getDeviceToken: () => "device-1",
+				},
+			});
+
+			const mockResponse = [
+				{
+					code: "ship-code",
+					name: "Shipping Service",
+					delivery: {
+						guaranteed_delivery: false,
+						expected_transit_time: 3,
+						expected_delivery_date: "2026-03-28",
+					},
+					pricing_details: {
+						base: 10,
+						taxes: {
+							gst: 0,
+							pst: 0,
+							hst: 0,
+						},
+						due: 12.5,
+					},
+				},
+			];
+
+			(fetch as any).mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: () => Promise.resolve(mockResponse),
+			});
+
+			const result = await sdk.order.getShippingRates({
+				body: {
+					postal_code: "H2B1A0",
+					country_code: "CA",
+				},
+			});
+
+			expect(result).toEqual(mockResponse);
+			expect(fetch).toHaveBeenCalledWith(
+				"https://api.example.com/shipping/canada-post/rs/ship/price",
+				expect.objectContaining({
+					method: "POST",
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+						"x-api-tenant": "test-tenant",
+						"x-device-id": "device-1",
+						Authorization: "Bearer test-access-token",
+					}),
+				}),
+			);
+		});
+	});
 });

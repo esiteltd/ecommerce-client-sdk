@@ -87,8 +87,8 @@ export class Order extends BaseClient {
 		};
 	}) {
 		const url = "/shipping/canada-post/rs/ship/price";
-		// Use unauthenticated request since this is called during guest checkout
-		const result = await this.unauthenticatedRequest(url, {
+		// Checkout reaches shipping-rate selection after the shopper is authenticated.
+		const result = await this.request(url, {
 			method: "POST",
 			body: {
 				destination: {
