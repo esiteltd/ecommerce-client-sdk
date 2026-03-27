@@ -407,4 +407,24 @@ export class Order extends BaseClient {
 		}).then((r) => r.json());
 		return result;
 	}
+
+	async downloadShippingDocument({
+		orderId,
+		type,
+	}: {
+		orderId: string;
+		type: "label" | "receipt";
+	}): Promise<Blob> {
+		const url = `/admin/order/${orderId}/shipping-document/${type}`;
+		const response = await this.request(url, {
+			method: "GET",
+		});
+
+		if (!response.ok) {
+			const error = await response.json().catch(() => ({ error: "Failed to download document" }));
+			throw new Error(error.error || "Failed to download shipping document");
+		}
+
+		return response.blob();
+	}
 }
