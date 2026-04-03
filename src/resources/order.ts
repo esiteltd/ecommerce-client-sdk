@@ -17,7 +17,14 @@ import {
 import { BaseClient } from "../client/base-client";
 import { objectToURLSearchParams } from "../utils";
 
-type AdminOrderShipmentStatus = "pending" | "shipped" | "delivered" | "returned" | "failed";
+type AdminOrderShipmentStatus =
+	| "pending"
+	| "shipment.created"
+	| "shipped"
+	| "delivered"
+	| "returned"
+	| "failed"
+	| "shipment.failed";
 type AdminOrderPaymentStatus = -1 | 0 | 1 | 2 | 3 | 4;
 type AdminOrderCurrentStepKind =
 	| "order.accepted"
@@ -28,6 +35,9 @@ type AdminOrderCurrentStepKind =
 	| "payment.paid"
 	| "payment.overpaid"
 	| "shipment.created"
+	| "shipment.shipped"
+	| "shipment.delivered"
+	| "shipment.returned"
 	| "shipment.failed"
 	| "branch.approved";
 

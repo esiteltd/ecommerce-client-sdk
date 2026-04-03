@@ -1503,6 +1503,8 @@ export type UpdateOffer = z.infer<typeof updateOfferSchema>;
 export const adminUpdateOrderSchema = z.object({
 	customer_id: z.string().optional(),
 	address_id: z.string().optional(),
+	payment_status: z.number().optional(),
+	shipment_provider: z.string().optional(),
 	shipment_service_code: z.string().optional(),
 	shipment_status: z.string().optional(),
 	shipment_price: z.number().optional(),
@@ -1529,6 +1531,12 @@ export const adminOrderListSchema = z.object({
 			payment_created_at: z.string().nullable().optional(),
 			items_count: z.number().optional(),
 			shipment_status: z.string().nullable().optional(),
+			shipment_provider: z.string().nullable().optional(),
+			shipment_service_code: z.string().nullable().optional(),
+			shipment_id: z.string().nullable().optional(),
+			shipment_tracking_pin: z.string().nullable().optional(),
+			shipment_label_link: z.string().nullable().optional(),
+			shipment_receipt_link: z.string().nullable().optional(),
 			customer: z.object({
 				id: z.string(),
 				firstname: z.string().optional(),
