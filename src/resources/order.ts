@@ -431,6 +431,16 @@ export class Order extends BaseClient {
 		return result;
 	}
 
+	async adminCreateShipment({ orderId }: { orderId: string }) {
+		const url = `/admin/order/${orderId}/create-shipment`;
+		const response = await this.request(url, { method: "POST" });
+		const result = await response.json();
+		if (!response.ok) {
+			throw new Error(result.error || "Failed to create shipment");
+		}
+		return result as { shipment_id: string; tracking_pin: string; message: string };
+	}
+
 	async downloadShippingDocument({
 		orderId,
 		type,
