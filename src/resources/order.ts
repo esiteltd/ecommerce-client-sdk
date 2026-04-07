@@ -418,6 +418,19 @@ export class Order extends BaseClient {
 		return result;
 	}
 
+	async resendEmail({ orderId }: { orderId: string }) {
+		const url = `/admin/order/${orderId}/resend-email`;
+		const result = await this.request(url, {
+			method: "POST",
+		}).then((r) => r.json());
+
+		if (result.error) {
+			throw new Error(result.error);
+		}
+
+		return result;
+	}
+
 	async downloadShippingDocument({
 		orderId,
 		type,

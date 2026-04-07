@@ -122,6 +122,7 @@ export class BaseClient {
 			"x-api-tenant": this.config.tenant,
 			...options.headers,
 		};
+		const timeoutMs = options.timeout ?? this.config.timeout!;
 
 		if (this.config.auth) {
 			const deviceToken = this.config.auth.getDeviceToken();
@@ -137,9 +138,6 @@ export class BaseClient {
 		const requestInit: RequestInit = {
 			method: options.method || "GET",
 			headers,
-			signal: AbortSignal.timeout(
-				options.timeout || this.config.timeout!,
-			),
 		};
 
 		if (options.body && options.method !== "GET") {
@@ -153,7 +151,7 @@ export class BaseClient {
 
 		try {
 			console.log("➡️", url);
-			let response = await this.fetchWithRetry(url, requestInit);
+			let response = await this.fetchWithRetry(url, requestInit, timeoutMs);
 
 			// Handle 401 Unauthorized - attempt token refresh
 			if (response.status === 401 && options.authentication) {
@@ -171,7 +169,7 @@ export class BaseClient {
 									...requestInit.headers,
 									Authorization: `Bearer ${token}`,
 								};
-								this.fetchWithRetry(url, requestInit)
+								this.fetchWithRetry(url, requestInit, timeoutMs)
 									.then(resolve)
 									.catch(reject);
 							},
@@ -191,7 +189,11 @@ export class BaseClient {
 						...requestInit.headers,
 						Authorization: `Bearer ${newAccessToken}`,
 					};
-					response = await this.fetchWithRetry(url, requestInit);
+					response = await this.fetchWithRetry(
+						url,
+						requestInit,
+						timeoutMs,
+					);
 				} catch (refreshError) {
 					this.processQueue(refreshError, null);
 					throw refreshError;
@@ -242,14 +244,18 @@ export class BaseClient {
 	private async fetchWithRetry(
 		url: string,
 		init: RequestInit,
+		timeoutMs: number,
 		retries: number = this.config.retries!,
 	): Promise<Response> {
 		try {
-			return await fetch(url, init);
+			return await fetch(url, {
+				...init,
+				signal: AbortSignal.timeout(timeoutMs),
+			});
 		} catch (error) {
 			if (retries > 0 && this.isRetryableError(error)) {
 				await this.delay(1000 * (this.config.retries! - retries + 1));
-				return this.fetchWithRetry(url, init, retries - 1);
+				return this.fetchWithRetry(url, init, timeoutMs, retries - 1);
 			}
 			throw error;
 		}
@@ -258,6 +264,7 @@ export class BaseClient {
 	private isRetryableError(error: any): boolean {
 		return (
 			error.name === "AbortError" ||
+			error.name === "TimeoutError" ||
 			error.code === "ECONNRESET" ||
 			error.code === "ETIMEDOUT"
 		);

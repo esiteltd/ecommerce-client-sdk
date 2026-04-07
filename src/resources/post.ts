@@ -3,6 +3,8 @@ import { BaseClient } from "../client/base-client";
 import { createPostSchema, postItemSchema, postListSchema, updatePostSchema } from "../schema";
 import { objectToURLSearchParams } from "../utils";
 
+const PUBLIC_POST_QUERY_TIMEOUT_MS = 30000;
+
 export class Post extends BaseClient {
 	async get({
 		id,
@@ -43,8 +45,19 @@ export class Post extends BaseClient {
 			})}`,
 			{
 				method: "GET",
+				timeout: PUBLIC_POST_QUERY_TIMEOUT_MS,
 			},
-		).then((r) => r.json());
+		).then((r) => this.parseJsonResponse(r));
+
+		if (result == null) {
+			return {
+				items: [],
+				page,
+				size,
+				total: 0,
+			};
+		}
+
 		return postListSchema.parse(result);
 	}
 

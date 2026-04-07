@@ -37,7 +37,17 @@ export class Supplier extends BaseClient {
 			{
 				method: "GET",
 			},
-		).then((r) => r.json());
+		).then((r) => this.parseJsonResponse(r));
+
+		if (result == null) {
+			return supplierListSchema.parse({
+				items: [],
+				page,
+				size,
+				total: 0,
+			});
+		}
+
 		return supplierListSchema.parse(result);
 	}
 
@@ -147,7 +157,17 @@ export class Supplier extends BaseClient {
 				order_by,
 			})}`,
 			{ method: "GET" },
-		).then((r) => r.json());
+		).then((r) => this.parseJsonResponse(r));
+
+		if (result == null) {
+			return supplierLocaleListSchema.parse({
+				items: [],
+				page,
+				size,
+				total: 0,
+			});
+		}
+
 		return supplierLocaleListSchema.parse(result);
 	}
 }

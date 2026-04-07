@@ -14,6 +14,8 @@ import {
 import { BaseClient } from "../client/base-client";
 import { objectToURLSearchParams } from "../utils";
 
+const PUBLIC_PRODUCT_QUERY_TIMEOUT_MS = 30000;
+
 export class Product extends BaseClient {
 	async get({
 		query,
@@ -68,7 +70,17 @@ export class Product extends BaseClient {
 
 		const result = await this.unauthenticatedRequest(url, {
 			method: "GET",
-		}).then((r) => r.json());
+			timeout: PUBLIC_PRODUCT_QUERY_TIMEOUT_MS,
+		}).then((r) => this.parseJsonResponse(r));
+
+		if (result == null) {
+			return {
+				items: [],
+				page: query.page,
+				size: query.size,
+				total: 0,
+			};
+		}
 
 		const data = productListSchema.safeParse(result);
 
