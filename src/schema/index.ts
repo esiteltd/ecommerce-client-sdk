@@ -321,9 +321,9 @@ export const categoryListItemSchema = z.object({
 			parent_id: z.string(),
 			media_id: z.string().nullable(),
 			title: z.string(),
-			children: z.array(z.unknown()),
+			children: z.array(z.unknown()).nullable().default([]),
 		}),
-	),
+	).nullable().default([]),
 });
 // Category schemas
 export const categoryListSchema = z.object({
