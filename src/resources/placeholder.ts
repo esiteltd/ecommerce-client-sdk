@@ -3,6 +3,7 @@ import { BaseClient } from "../client/base-client";
 import {
 	adminPlaceholderItemSchema,
 	createPlaceholderSchema,
+	placeholderByLocationListSchema,
 	placeholderItemSchema,
 	placeholderListSchema,
 	updatePlaceholderSchema,
@@ -40,6 +41,24 @@ export class Placeholder extends BaseClient {
 			method: "GET",
 		}).then((r) => r.json());
 		return adminPlaceholderItemSchema.parse(result);
+	}
+
+	async queryByLocation({
+		locationKeys,
+		lang = "en",
+	}: {
+		locationKeys: string[];
+		lang?: string;
+	}) {
+		const params = objectToURLSearchParams({
+			lang,
+			location_key: locationKeys,
+		});
+		const result = await this.unauthenticatedRequest(
+			`/public/placeholder/by-location?${params}`,
+			{ method: "GET" },
+		).then((r) => r.json());
+		return placeholderByLocationListSchema.parse(result);
 	}
 
 	async create({ body }: { body: z.infer<typeof createPlaceholderSchema> }) {

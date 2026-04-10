@@ -878,6 +878,7 @@ export const tenantSchema = z.object({
 	contact_phone: z.string(),
 	currency: z.string(),
 	federal_tax: z.number(),
+	frontend_metadata_template: z.unknown().optional(),
 	mode: z.string(),
 	province_tax: z.number(),
 	tenant_id: z.string(),
@@ -2045,10 +2046,13 @@ export type CreateCoupon = z.infer<typeof createCouponSchema>;
 export type UpdateCoupon = z.infer<typeof updateCouponSchema>;
 
 // ─── Placeholder schemas ──────────────────────────────────────────────────────
-export const placeholderItemSchema = z.object({
+export const placeholderSlideSchema = z.object({
 	id: z.string(),
 	parent_id: z.string().nullable().optional(),
 	media_id: z.string().nullable().optional(),
+	location_key: z.string().nullable().optional(),
+	action_link: z.string().nullable().optional(),
+	sort_order: z.number().optional().default(0),
 	title: z.string().nullable().optional(),
 	description: z.string().nullable().optional(),
 	tenant_id: z.string().optional(),
@@ -2057,16 +2061,27 @@ export const placeholderItemSchema = z.object({
 	updated_at: z.string().optional(),
 });
 
-export const adminPlaceholderItemSchema = z.object({
+export const placeholderItemSchema = placeholderSlideSchema.extend({
+	slides: z.array(z.lazy(() => placeholderSlideSchema)).optional().default([]),
+});
+
+export const adminPlaceholderSlideSchema = z.object({
 	id: z.string(),
 	parent_id: z.string().nullable().optional(),
 	media_id: z.string().nullable().optional(),
+	location_key: z.string().nullable().optional(),
+	action_link: z.string().nullable().optional(),
+	sort_order: z.number().optional().default(0),
 	title: z.record(z.string(), z.string()).optional().default({}),
 	description: z.record(z.string(), z.string()).optional().default({}),
 	tenant_id: z.string().optional(),
 	deleted_at: z.string().nullable().optional(),
 	created_at: z.string().optional(),
 	updated_at: z.string().optional(),
+});
+
+export const adminPlaceholderItemSchema = adminPlaceholderSlideSchema.extend({
+	slides: z.array(z.lazy(() => adminPlaceholderSlideSchema)).optional().default([]),
 });
 
 export const placeholderListSchema = z.object({
@@ -2076,17 +2091,35 @@ export const placeholderListSchema = z.object({
 	total: z.number(),
 });
 
+export const placeholderByLocationListSchema = z.object({
+	items: z.array(placeholderItemSchema),
+});
+
+export const createPlaceholderSlideSchema = z.object({
+	id: z.string().optional(),
+	media_id: z.string(),
+	action_link: z.string().optional(),
+	sort_order: z.number().optional().default(0),
+	title: z.record(z.string(), z.string()).optional().default({}),
+	description: z.record(z.string(), z.string()).optional().default({}),
+});
+
 export const createPlaceholderSchema = z.object({
-	parent_id: z.string().optional(),
-	media_id: z.string().optional(),
+	location_key: z.string(),
+	action_link: z.string().optional(),
 	title: z.record(z.string(), z.string()).optional(),
 	description: z.record(z.string(), z.string()).optional(),
+	slides: z.array(createPlaceholderSlideSchema).min(1),
 });
 
 export const updatePlaceholderSchema = createPlaceholderSchema.partial();
 
+export type PlaceholderSlide = z.infer<typeof placeholderSlideSchema>;
 export type PlaceholderItem = z.infer<typeof placeholderItemSchema>;
+export type AdminPlaceholderSlide = z.infer<typeof adminPlaceholderSlideSchema>;
 export type AdminPlaceholderItem = z.infer<typeof adminPlaceholderItemSchema>;
 export type PlaceholderList = z.infer<typeof placeholderListSchema>;
+export type PlaceholderByLocationList = z.infer<typeof placeholderByLocationListSchema>;
+export type CreatePlaceholderSlide = z.infer<typeof createPlaceholderSlideSchema>;
 export type CreatePlaceholder = z.infer<typeof createPlaceholderSchema>;
 export type UpdatePlaceholder = z.infer<typeof updatePlaceholderSchema>;
