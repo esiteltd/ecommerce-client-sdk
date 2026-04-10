@@ -32,16 +32,16 @@ describe("EcommerceSDK", () => {
 				device_identifier: "test-device",
 			});
 
-			expect(result).toEqual(mockResponse);
+			expect(result).toEqual({ token: "test-token" });
 			expect(fetch).toHaveBeenCalledWith(
-				"https://api.example.com/tgs",
+				"https://api.example.com/public/tgs",
 				expect.objectContaining({
 					method: "POST",
 					headers: expect.objectContaining({
 						"Content-Type": "application/json",
 						"x-api-tenant": "test-tenant",
 					}),
-					body: { device_identifier: "test-device" },
+					body: JSON.stringify({ device_identifier: "test-device" }),
 				}),
 			);
 		});
@@ -50,33 +50,59 @@ describe("EcommerceSDK", () => {
 	describe("Products Resource", () => {
 		it("should list products", async () => {
 			const mockResponse = {
-				data: [
+				items: [
 					{
 						id: "1",
-						name: "Test Product",
+						title: "Test Product",
 						price: 99.99,
+						sku: "SKU-1",
+						slug: "test-product",
+						currency: "CAD",
+						unit: "piece",
+						out_of_stock: false,
+						media_id: null,
+						media_content_type: null,
+						media_file_id: null,
+						cover_media_file_id: null,
 						category_id: "cat1",
-						created_at: "2024-01-01T00:00:00Z",
-						updated_at: "2024-01-01T00:00:00Z",
+						category_title: "Category",
+						brand_id: null,
+						brand_title: null,
 					},
 				],
-				meta: {
-					total: 1,
-					page: 1,
-					limit: 10,
-				},
+				page: 1,
+				size: 10,
+				total: 1,
 			};
 
 			(fetch as any).mockResolvedValueOnce({
 				ok: true,
-				json: () => Promise.resolve(mockResponse),
+				status: 200,
+				headers: {
+					get: (name: string) =>
+						name.toLowerCase() === "content-type"
+							? "application/json"
+							: null,
+				},
+				text: () => Promise.resolve(JSON.stringify(mockResponse)),
 			});
 
-			const result = await sdk.products.list({ page: 1, limit: 10 });
+			const result = await sdk.product.query({
+				query: { locale: "en", page: 1, size: 10 },
+			});
 
-			expect(result).toEqual(mockResponse);
+			expect(result).toEqual({
+				...mockResponse,
+				items: [
+					{
+						...mockResponse.items[0],
+						suppliers: [],
+						attributes: [],
+					},
+				],
+			});
 			expect(fetch).toHaveBeenCalledWith(
-				"https://api.example.com/products?page=1&limit=10",
+				"https://api.example.com/public/product?locale=en&page=1&size=10",
 				expect.objectContaining({
 					method: "GET",
 				}),
