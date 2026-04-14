@@ -5,6 +5,7 @@ import {
 	createProductSchema,
 	productListSchema,
 	productMetricsSchema,
+	productUniquenessSchema,
 	productSchema,
 	queryFavoritesSchema,
 	queryReviewSchema,
@@ -257,6 +258,23 @@ export class Product extends BaseClient {
 			body: validatedBody,
 		}).then((r) => r.json());
 		return result;
+	}
+
+	async checkUniqueness({
+		query,
+	}: {
+		query: {
+			sku?: string;
+			slug?: string;
+			exclude_product_id?: string;
+		};
+	}) {
+		const url = "/product/uniqueness?" + objectToURLSearchParams(query);
+		const result = await this.request(url, {
+			method: "GET",
+		}).then((r) => r.json());
+
+		return productUniquenessSchema.parse(result);
 	}
 
 	async delete({ productId }: { productId: string }) {

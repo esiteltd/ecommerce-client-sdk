@@ -1623,8 +1623,14 @@ export const productMetricsSchema = z.object({
 	).optional().default([]),
 });
 
+export const productUniquenessSchema = z.object({
+	sku_exists: z.boolean(),
+	slug_exists: z.boolean(),
+});
+
 export type CreateProduct = z.infer<typeof createProductSchema>;
 export type UpdateProduct = z.infer<typeof updateProductSchema>;
+export type ProductUniqueness = z.infer<typeof productUniquenessSchema>;
 
 // ─── Branch Admin schemas ─────────────────────────────────────────────────────
 export const polygonPointSchema = z.object({
