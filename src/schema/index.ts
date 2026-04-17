@@ -205,6 +205,20 @@ export const updateCustomerSchema = createCustomerSchema
 	.partial();
 
 // Product schemas
+export const productAttributeSchema: z.ZodType<any> = z.lazy(() =>
+	z.object({
+		id: z.string().optional(),
+		product_id: z.string().optional(),
+		parent_id: z.string().nullable().optional(),
+		media_id: z.string().nullable().optional(),
+		type: z.string(),
+		extra: z.string().optional().default("{}"),
+		price: z.number().nullish(),
+		sku: z.string().nullish(),
+		children: z.array(productAttributeSchema).optional().default([]),
+	}),
+);
+
 export const productSchema = z.object({
 	id: z.string(),
 	title: z.string(),
@@ -237,29 +251,7 @@ export const productSchema = z.object({
 	weight: z.number().optional(),
 	disable: z.boolean(),
 	out_of_stock: z.boolean(),
-	attributes: z.array(
-		z.object({
-			id: z.string(),
-			product_id: z.string(),
-			parent_id: z.string().nullable(),
-			media_id: z.string().nullable(),
-			type: z.string(),
-			extra: z.string(),
-			children: z.array(
-				z.object({
-					id: z.string(),
-					product_id: z.string(),
-					parent_id: z.string(),
-					media_id: z.string().nullable(),
-					type: z.string(),
-					extra: z.string(),
-					price: z.number(),
-					sku: z.string(),
-					children: z.array(z.unknown()),
-				}),
-			),
-		}),
-	),
+	attributes: z.array(productAttributeSchema).default([]),
 	media: z.array(mediaSchema).nullish().default([]),
 	categories: z.array(categorySchema).nullish().default([]),
 	brands: z.array(brandSchema).nullish().default([]),
@@ -287,19 +279,7 @@ export const productListItemSchema = z.object({
 	brand_title: z.string().nullable(),
 	supplier_id: z.string().nullable().optional(),
 	suppliers: z.array(productSupplierSchema).optional().default([]),
-	attributes: z.array(
-		z.object({
-			id: z.string().optional(),
-			product_id: z.string().optional(),
-			parent_id: z.string().nullable().optional(),
-			media_id: z.string().nullable().optional(),
-			type: z.string(),
-			extra: z.string().optional(),
-			price: z.number().optional(),
-			sku: z.string().optional(),
-			children: z.array(z.unknown()).optional(),
-		}),
-	).optional().default([]),
+	attributes: z.array(productAttributeSchema).optional().default([]),
 });
 
 export const productListSchema = z.object({
@@ -336,7 +316,7 @@ export const categoryListSchema = z.object({
 export const cartListItemSchema = z.object({
 	id: z.string(),
 	product_id: z.string(),
-	product_attribute_id: z.string().optional(),
+	product_attribute_id: z.string().nullable().optional(),
 	quantity: z.number(),
 	device_token: z.string(),
 	notes: z.string(),
@@ -358,18 +338,7 @@ export const cartListItemSchema = z.object({
 		reviews_count: z.number(),
 		cover_media_file_id: z.string().nullable(),
 		rating: z.number(),
-		attributes: z.array(
-			z.object({
-				id: z.string(),
-				product_id: z.string(),
-				parent_id: z.string().nullable(),
-				media_id: z.string().nullable(),
-				type: z.string(),
-				extra: z.string(),
-				price: z.number().nullish(),
-				children: z.array(z.unknown()),
-			}),
-		),
+		attributes: z.array(productAttributeSchema).default([]),
 		media: z
 			.array(
 				z.object({
@@ -977,6 +946,7 @@ export type RegisterResponse = z.infer<typeof registerResponseSchema>;
 export type AddressFormData = z.infer<typeof addressFormSchema>;
 export type Address = z.infer<typeof addressSchema>;
 export type Product = z.infer<typeof productSchema>;
+export type ProductAttribute = z.infer<typeof productAttributeSchema>;
 export type Order = z.infer<typeof getOrderSchema>;
 export type Customer = z.infer<typeof customerSchema>;
 export type User = z.infer<typeof authUserSchema>;
@@ -1957,16 +1927,7 @@ export const adminProductSchema = z.object({
 	out_of_stock: z.boolean(),
 	reviews_count: z.number().optional(),
 	rating: z.number().optional(),
-	attributes: z.array(
-		z.object({
-			id: z.string().optional(),
-			type: z.string(),
-			extra: z.string().optional(),
-			price: z.number().optional(),
-			sku: z.string().optional(),
-			children: z.array(z.unknown()).optional(),
-		}),
-	).optional().default([]),
+	attributes: z.array(productAttributeSchema).optional().default([]),
 	media: z.array(mediaItemSchema).nullish().default([]),
 	brands: z.array(
 		z.object({
