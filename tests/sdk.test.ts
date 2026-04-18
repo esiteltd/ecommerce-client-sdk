@@ -127,6 +127,8 @@ describe("EcommerceSDK", () => {
 				{
 					code: "ship-code",
 					name: "Shipping Service",
+					has_free_shipping_discount: true,
+					discount_amount: 10,
 					delivery: {
 						guaranteed_delivery: false,
 						expected_transit_time: 3,
@@ -141,6 +143,15 @@ describe("EcommerceSDK", () => {
 						},
 						due: 12.5,
 					},
+					original_pricing_details: {
+						base: 20,
+						taxes: {
+							gst: 0,
+							pst: 0,
+							hst: 0,
+						},
+						due: 22.5,
+					},
 				},
 			];
 
@@ -154,6 +165,7 @@ describe("EcommerceSDK", () => {
 				body: {
 					postal_code: "H2B1A0",
 					country_code: "CA",
+					address_id: "address-1",
 				},
 			});
 
@@ -167,6 +179,19 @@ describe("EcommerceSDK", () => {
 						"x-api-tenant": "test-tenant",
 						"x-device-id": "device-1",
 						Authorization: "Bearer test-access-token",
+					}),
+					body: JSON.stringify({
+						destination: {
+							postal_code: "H2B1A0",
+							country_code: "CA",
+						},
+						address_id: "address-1",
+						dimensions_cm: {
+							length: 1.1,
+							width: 1.1,
+							height: 1.1,
+						},
+						weight_kg: 1.1,
 					}),
 				}),
 			);

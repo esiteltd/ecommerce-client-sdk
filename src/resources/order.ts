@@ -79,7 +79,10 @@ type AdminOrderQuery = {
 export class Order extends BaseClient {
 	private withTenantQuery(
 		endpoint: string,
-		query: Record<string, string | number | boolean | null | undefined> = {},
+		query: Record<
+			string,
+			string | number | boolean | null | undefined
+		> = {},
 	) {
 		const params = objectToURLSearchParams({
 			tenant: this.tenant || undefined,
@@ -94,6 +97,7 @@ export class Order extends BaseClient {
 		body: {
 			postal_code: string;
 			country_code: string;
+			address_id?: string;
 		};
 	}) {
 		const url = "/shipping/canada-post/rs/ship/price";
@@ -102,8 +106,10 @@ export class Order extends BaseClient {
 			method: "POST",
 			body: {
 				destination: {
-					...body,
+					postal_code: body.postal_code,
+					country_code: body.country_code,
 				},
+				...(body.address_id ? { address_id: body.address_id } : {}),
 				dimensions_cm: {
 					// optional
 					length: 1.1,
@@ -193,7 +199,7 @@ export class Order extends BaseClient {
 			body: validatedBody,
 			headers,
 		});
-		
+
 		const result = await response.json();
 
 		const parsed = createOrderGuestResponseSchema.safeParse(result);
@@ -223,11 +229,7 @@ export class Order extends BaseClient {
 		return orderSchema.parse(result);
 	}
 
-	async query({
-		query,
-	}: {
-		query: OrderListQuery;
-	}) {
+	async query({ query }: { query: OrderListQuery }) {
 		const paymentStatus = query.payment_status ?? query.status;
 		const queryParams: Record<string, string> = {
 			page: (query.page || 1).toString(),
@@ -269,11 +271,7 @@ export class Order extends BaseClient {
 		return;
 	}
 
-	async adminQuery({
-		query,
-	}: {
-		query: AdminOrderQuery;
-	}) {
+	async adminQuery({ query }: { query: AdminOrderQuery }) {
 		const paymentStatus = query.payment_status ?? query.status;
 		const currentStepKind = query.current_step_kind ?? query.kind;
 		const url = this.withTenantQuery("/admin/order", {
@@ -287,15 +285,25 @@ export class Order extends BaseClient {
 			...(query.number ? { number: query.number } : {}),
 			...(query.customer_id ? { customer_id: query.customer_id } : {}),
 			...(query.address_id ? { address_id: query.address_id } : {}),
-			...(query.total_price !== undefined ? { total_price: query.total_price } : {}),
+			...(query.total_price !== undefined
+				? { total_price: query.total_price }
+				: {}),
 			...(query.created_at ? { created_at: query.created_at } : {}),
 			...(query.start ? { start: query.start } : {}),
 			...(query.end ? { end: query.end } : {}),
-			...(query.shipment_status ? { shipment_status: query.shipment_status } : {}),
+			...(query.shipment_status
+				? { shipment_status: query.shipment_status }
+				: {}),
 			...(query.payment_id ? { payment_id: query.payment_id } : {}),
-			...(query.payment_provider ? { payment_provider: query.payment_provider } : {}),
-			...(query.payment_created_at ? { payment_created_at: query.payment_created_at } : {}),
-			...(query.canceled !== undefined ? { canceled: query.canceled } : {}),
+			...(query.payment_provider
+				? { payment_provider: query.payment_provider }
+				: {}),
+			...(query.payment_created_at
+				? { payment_created_at: query.payment_created_at }
+				: {}),
+			...(query.canceled !== undefined
+				? { canceled: query.canceled }
+				: {}),
 			...(currentStepKind
 				? { current_step_kind: currentStepKind, kind: currentStepKind }
 				: {}),
@@ -354,13 +362,7 @@ export class Order extends BaseClient {
 		return result;
 	}
 
-	async deleteItem({
-		orderId,
-		itemId,
-	}: {
-		orderId: string;
-		itemId: string;
-	}) {
+	async deleteItem({ orderId, itemId }: { orderId: string; itemId: string }) {
 		const url = `/order/${orderId}/item/${itemId}`;
 		await this.request(url, {
 			method: "DELETE",
@@ -378,7 +380,8 @@ export class Order extends BaseClient {
 			timezone?: string;
 		};
 	}) {
-		const url = "/order/metrics/submitted/series?" + objectToURLSearchParams(query);
+		const url =
+			"/order/metrics/submitted/series?" + objectToURLSearchParams(query);
 		const result = await this.request(url, {
 			method: "GET",
 		}).then((r) => r.json());
@@ -438,7 +441,11 @@ export class Order extends BaseClient {
 		if (!response.ok) {
 			throw new Error(result.error || "Failed to create shipment");
 		}
-		return result as { shipment_id: string; tracking_pin: string; message: string };
+		return result as {
+			shipment_id: string;
+			tracking_pin: string;
+			message: string;
+		};
 	}
 
 	async downloadShippingDocument({
@@ -454,8 +461,12 @@ export class Order extends BaseClient {
 		});
 
 		if (!response.ok) {
-			const error = await response.json().catch(() => ({ error: "Failed to download document" }));
-			throw new Error(error.error || "Failed to download shipping document");
+			const error = await response
+				.json()
+				.catch(() => ({ error: "Failed to download document" }));
+			throw new Error(
+				error.error || "Failed to download shipping document",
+			);
 		}
 
 		return response.blob();

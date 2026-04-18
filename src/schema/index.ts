@@ -51,7 +51,9 @@ const productSupplierSchema = z.union([
 	z.object({
 		id: z.string(),
 		name: z.string().nullable().optional(),
-		title: z.union([z.string(), z.record(z.string(), z.string())]).optional(),
+		title: z
+			.union([z.string(), z.record(z.string(), z.string())])
+			.optional(),
 		locales: z.array(productSupplierLocaleSchema).optional().default([]),
 	}),
 ]);
@@ -74,13 +76,21 @@ export const authUserSchema = z.object({
 	tenant: z.string(),
 	tenantLanguages: z.array(z.string()).default([]),
 	roles: z.array(z.string()).optional(),
-	attributes: z.object({
-		permissionId: z.array(z.string()).default([]),
-		jobTitle: z.array(z.string()).default([]),
-		local: z.array(z.string()).default([]),
-		locale: z.array(z.string()).default([]),
-		profilePic: z.array(z.string()).default([]),
-	}).default({ permissionId: [], jobTitle: [], local: [], locale: [], profilePic: [] }),
+	attributes: z
+		.object({
+			permissionId: z.array(z.string()).default([]),
+			jobTitle: z.array(z.string()).default([]),
+			local: z.array(z.string()).default([]),
+			locale: z.array(z.string()).default([]),
+			profilePic: z.array(z.string()).default([]),
+		})
+		.default({
+			permissionId: [],
+			jobTitle: [],
+			local: [],
+			locale: [],
+			profilePic: [],
+		}),
 });
 
 export const loginResponseSchema = z.object({
@@ -89,7 +99,10 @@ export const loginResponseSchema = z.object({
 	access_token_expiration: z.number(),
 	refresh_token_expiration: z.number(),
 	user: authUserSchema,
-	customer: z.lazy(() => customerSchema).nullish().default(null),
+	customer: z
+		.lazy(() => customerSchema)
+		.nullish()
+		.default(null),
 	address: z.lazy(() => addressSchema).nullish(),
 });
 
@@ -162,7 +175,9 @@ const localizedTextValueSchema = z.union([
 	z.null(),
 ]);
 
-const boolishValueSchema = z.union([z.boolean(), z.number(), z.string(), z.null()]).optional();
+const boolishValueSchema = z
+	.union([z.boolean(), z.number(), z.string(), z.null()])
+	.optional();
 
 export const customerSchema = z.object({
 	id: z.string(),
@@ -172,9 +187,15 @@ export const customerSchema = z.object({
 	language: nullableLooseStringSchema,
 	phonenumber: nullableLooseStringSchema,
 	email: nullableLooseStringSchema,
-	gender: z.number().nullish().transform((value) => value ?? 0),
+	gender: z
+		.number()
+		.nullish()
+		.transform((value) => value ?? 0),
 	date_of_birth: z.string().nullable().optional().default(null),
-	verified: z.boolean().nullish().transform((value) => value ?? false),
+	verified: z
+		.boolean()
+		.nullish()
+		.transform((value) => value ?? false),
 	deleted_at: z.string().nullable().optional(),
 	created_at: z.string().optional(),
 	tenant_id: z.string().nullable().optional(),
@@ -295,15 +316,18 @@ export const categoryListItemSchema = z.object({
 	media_id: z.string().nullable(),
 	title: z.string(),
 	products: z.number(),
-	children: z.array(
-		z.object({
-			id: z.string(),
-			parent_id: z.string(),
-			media_id: z.string().nullable(),
-			title: z.string(),
-			children: z.array(z.unknown()).nullable().default([]),
-		}),
-	).nullable().default([]),
+	children: z
+		.array(
+			z.object({
+				id: z.string(),
+				parent_id: z.string(),
+				media_id: z.string().nullable(),
+				title: z.string(),
+				children: z.array(z.unknown()).nullable().default([]),
+			}),
+		)
+		.nullable()
+		.default([]),
 });
 // Category schemas
 export const categoryListSchema = z.object({
@@ -419,24 +443,27 @@ export const orderPaymentSchema = z.object({
 	amount: z.number(),
 	created_at: z.string(),
 	// Provider-agnostic schema - different providers return different fields
-	provider_extra_information: z.object({
-		id: z.string().optional(),
-		payment_id: z.string().optional(),
-		url: z.string().optional(),
-		// Stripe-specific fields (optional)
-		payment_status: z.string().optional(),
-		session_status: z.string().optional(),
-		session_expires_at: z.number().optional(),
-		session_created_at: z.number().optional(),
-		// ZainCash-specific fields (optional)
-		transaction_status: z.string().optional(),
-		created_at: z.string().optional(),
-		// SwitchPayment-specific fields (optional)
-		result_url: z.string().optional(),
-		integrity: z.string().optional(),
-		checkout_status: z.string().optional(),
-		timestamp: z.string().optional(),
-	}).nullable().optional(),
+	provider_extra_information: z
+		.object({
+			id: z.string().optional(),
+			payment_id: z.string().optional(),
+			url: z.string().optional(),
+			// Stripe-specific fields (optional)
+			payment_status: z.string().optional(),
+			session_status: z.string().optional(),
+			session_expires_at: z.number().optional(),
+			session_created_at: z.number().optional(),
+			// ZainCash-specific fields (optional)
+			transaction_status: z.string().optional(),
+			created_at: z.string().optional(),
+			// SwitchPayment-specific fields (optional)
+			result_url: z.string().optional(),
+			integrity: z.string().optional(),
+			checkout_status: z.string().optional(),
+			timestamp: z.string().optional(),
+		})
+		.nullable()
+		.optional(),
 });
 
 export const orderSchema = z.object({
@@ -469,22 +496,27 @@ export const orderSchema = z.object({
 		payment_status: z.string().nullable().optional(),
 		payment_created_at: z.string().nullable().optional(),
 		items_count: z.number().optional(),
-		current_step: z.object({
-			id: z.string(),
-			order_id: z.string(),
-			kind: z.string(),
-			extra: z.string(),
-			created_at: z.string(),
-		}).optional(),
-		logs: z.array(
-			z.object({
+		current_step: z
+			.object({
 				id: z.string(),
 				order_id: z.string(),
 				kind: z.string(),
 				extra: z.string(),
 				created_at: z.string(),
-			}),
-		).optional().default([]),
+			})
+			.optional(),
+		logs: z
+			.array(
+				z.object({
+					id: z.string(),
+					order_id: z.string(),
+					kind: z.string(),
+					extra: z.string(),
+					created_at: z.string(),
+				}),
+			)
+			.optional()
+			.default([]),
 		items: z.array(orderItemSchema),
 	}),
 	payment: orderPaymentSchema.nullable().optional(),
@@ -557,7 +589,11 @@ export const getOrderSchema = z.object({
 	payment_id: z.string().uuid().nullable().optional(),
 	payment_provider: z.string().nullable().optional(),
 	payment_status: z.string().nullable().optional(),
-	payment_created_at: z.string().datetime({ offset: true }).nullable().optional(),
+	payment_created_at: z
+		.string()
+		.datetime({ offset: true })
+		.nullable()
+		.optional(),
 	items_count: z.number().int(),
 	current_step: z.object({
 		id: z.string().uuid(),
@@ -596,10 +632,12 @@ export const createOrderSchema = z.object({
 	address_id: z.string(),
 	payment: z.object({ provider: z.string() }).optional(),
 	items: z.array(z.object({ cart_id: z.string() })),
-	shipment: z.object({
-		service_code: z.string(),
-		provider: z.string(),
-	}).optional(),
+	shipment: z
+		.object({
+			service_code: z.string(),
+			provider: z.string(),
+		})
+		.optional(),
 });
 
 // Payment schema for non-POS providers
@@ -615,7 +653,10 @@ const posPaymentSchema = z.object({
 });
 
 // Union of payment schemas
-const guestOrderPaymentSchema = z.union([nonPosPaymentSchema, posPaymentSchema]);
+const guestOrderPaymentSchema = z.union([
+	nonPosPaymentSchema,
+	posPaymentSchema,
+]);
 
 export const createOrderGuestSchema = z.object({
 	api_key: z.string().min(1).optional(),
@@ -687,64 +728,78 @@ export const createOrderGuestResponseSchema = z.object({
 		province_tax: z.number().optional().default(0),
 		created_at: z.string(),
 		items_count: z.number().optional(),
-		current_step: z.object({
-			id: z.string(),
-			order_id: z.string(),
-			kind: z.string(),
-			extra: z.string(),
-			created_at: z.string(),
-		}).optional(),
-		logs: z.array(
-			z.object({
+		current_step: z
+			.object({
 				id: z.string(),
 				order_id: z.string(),
 				kind: z.string(),
 				extra: z.string(),
 				created_at: z.string(),
-			}),
-		).optional().default([]),
-		items: z.array(
+			})
+			.optional(),
+		logs: z
+			.array(
+				z.object({
+					id: z.string(),
+					order_id: z.string(),
+					kind: z.string(),
+					extra: z.string(),
+					created_at: z.string(),
+				}),
+			)
+			.optional()
+			.default([]),
+		items: z
+			.array(
+				z.object({
+					id: z.string(),
+					order_id: z.string(),
+					cart_id: z.string().nullable(),
+					product_id: z.string(),
+					product_attribute_id: z.string().nullable(),
+					price: z.number(),
+					price_updated_at: z.string(),
+					quantity: z.number(),
+					notes: z.string(),
+					created_at: z.string(),
+				}),
+			)
+			.optional()
+			.default([]),
+	}),
+	// Payment can be null (COD) or an object with payment details
+	payment: z
+		.union([
+			z.null(),
 			z.object({
 				id: z.string(),
 				order_id: z.string(),
-				cart_id: z.string().nullable(),
-				product_id: z.string(),
-				product_attribute_id: z.string().nullable(),
-				price: z.number(),
-				price_updated_at: z.string(),
-				quantity: z.number(),
-				notes: z.string(),
+				status: z.number(),
+				provider: z.string(),
+				amount: z.number(),
 				created_at: z.string(),
+				provider_extra_information: z
+					.object({
+						id: z.string().optional(),
+						payment_id: z.string().optional(),
+						url: z.string().optional(),
+						result_url: z.string().optional(),
+						payment_status: z.string().optional(),
+						session_status: z.string().optional(),
+						session_expires_at: z.number().optional(),
+						session_created_at: z.number().optional(),
+						transaction_status: z.string().optional(),
+						created_at: z.string().optional(),
+						integrity: z.string().optional(),
+						checkout_status: z.string().optional(),
+						timestamp: z.string().optional(),
+					})
+					.nullable()
+					.optional(),
 			}),
-		).optional().default([]),
-	}),
-	// Payment can be null (COD) or an object with payment details
-	payment: z.union([
-		z.null(),
-		z.object({
-			id: z.string(),
-			order_id: z.string(),
-			status: z.number(),
-			provider: z.string(),
-			amount: z.number(),
-			created_at: z.string(),
-			provider_extra_information: z.object({
-				id: z.string().optional(),
-				payment_id: z.string().optional(),
-				url: z.string().optional(),
-				result_url: z.string().optional(),
-				payment_status: z.string().optional(),
-				session_status: z.string().optional(),
-				session_expires_at: z.number().optional(),
-				session_created_at: z.number().optional(),
-				transaction_status: z.string().optional(),
-				created_at: z.string().optional(),
-				integrity: z.string().optional(),
-				checkout_status: z.string().optional(),
-				timestamp: z.string().optional(),
-			}).nullable().optional(),
-		}),
-	]).nullable().optional(),
+		])
+		.nullable()
+		.optional(),
 });
 
 export const updateOrderSchema = z.object({
@@ -821,6 +876,8 @@ export const shippingRatesSchema = z.array(
 	z.object({
 		name: z.string(),
 		code: z.string(),
+		has_free_shipping_discount: z.boolean().optional(),
+		discount_amount: z.number().optional(),
 		delivery: z.object({
 			guaranteed_delivery: z.boolean(),
 			expected_transit_time: z.number(),
@@ -835,6 +892,17 @@ export const shippingRatesSchema = z.array(
 			}),
 			due: z.number(),
 		}),
+		original_pricing_details: z
+			.object({
+				base: z.number(),
+				taxes: z.object({
+					gst: z.number(),
+					pst: z.number(),
+					hst: z.number(),
+				}),
+				due: z.number(),
+			})
+			.optional(),
 	}),
 );
 
@@ -861,18 +929,20 @@ export const branchListItemSchema = z.object({
 	products: z.any(),
 	orders: z.any(),
 	drivers: z.any(),
-	geozones: z.array(
-		z.object({
-			id: z.string(),
-			branch_id: z.string(),
-			name: z.string(),
-			polygon: z.array(
-				z.object({ latitude: z.number(), longitude: z.number() }),
-			),
-			delivery_cost: z.string(),
-			created_at: z.string(),
-		}),
-	).nullable(),
+	geozones: z
+		.array(
+			z.object({
+				id: z.string(),
+				branch_id: z.string(),
+				name: z.string(),
+				polygon: z.array(
+					z.object({ latitude: z.number(), longitude: z.number() }),
+				),
+				delivery_cost: z.string(),
+				created_at: z.string(),
+			}),
+		)
+		.nullable(),
 });
 
 export const branchListSchema = z.object({
@@ -917,7 +987,6 @@ export const menuListSchema = z.object({
 	size: z.number(),
 	total: z.number(),
 });
-
 
 // TGS schema
 export const tgsGenerateSchema = z.object({ token: z.string() });
@@ -1510,24 +1579,33 @@ export const adminOrderListSchema = z.object({
 			shipment_tracking_pin: z.string().nullable().optional(),
 			shipment_label_link: z.string().nullable().optional(),
 			shipment_receipt_link: z.string().nullable().optional(),
-			customer: z.object({
-				id: z.string(),
-				firstname: z.string().optional(),
-				lastname: z.string().optional(),
-				email: z.string().optional(),
-			}).nullable().optional(),
-			address: z.object({
-				id: z.string(),
-				city: z.string().optional(),
-				country: z.string().optional(),
-			}).passthrough().nullable().optional(),
-			current_step: z.object({
-				id: z.string(),
-				order_id: z.string(),
-				kind: z.string(),
-				extra: z.string(),
-				created_at: z.string(),
-			}).optional(),
+			customer: z
+				.object({
+					id: z.string(),
+					firstname: z.string().optional(),
+					lastname: z.string().optional(),
+					email: z.string().optional(),
+				})
+				.nullable()
+				.optional(),
+			address: z
+				.object({
+					id: z.string(),
+					city: z.string().optional(),
+					country: z.string().optional(),
+				})
+				.passthrough()
+				.nullable()
+				.optional(),
+			current_step: z
+				.object({
+					id: z.string(),
+					order_id: z.string(),
+					kind: z.string(),
+					extra: z.string(),
+					created_at: z.string(),
+				})
+				.optional(),
 		}),
 	),
 	page: z.number(),
@@ -1542,19 +1620,24 @@ export const orderItemUpdateSchema = z.object({
 });
 
 export const orderMetricsSchema = z.object({
-	series: z.array(
-		z.object({
-			date: z.string(),
-			value: z.number(),
-		}),
-	).optional().default([]),
+	series: z
+		.array(
+			z.object({
+				date: z.string(),
+				value: z.number(),
+			}),
+		)
+		.optional()
+		.default([]),
 });
 
-export const orderStatisticsSchema = z.object({
-	total_orders: z.number().optional(),
-	total_revenue: z.number().optional(),
-	average_order_value: z.number().optional(),
-}).passthrough();
+export const orderStatisticsSchema = z
+	.object({
+		total_orders: z.number().optional(),
+		total_revenue: z.number().optional(),
+		average_order_value: z.number().optional(),
+	})
+	.passthrough();
 
 export type AdminUpdateOrder = z.infer<typeof adminUpdateOrderSchema>;
 export type AdminOrderList = z.infer<typeof adminOrderListSchema>;
@@ -1585,12 +1668,15 @@ export const createProductSchema = z.object({
 export const updateProductSchema = createProductSchema.partial();
 
 export const productMetricsSchema = z.object({
-	series: z.array(
-		z.object({
-			date: z.string(),
-			value: z.number(),
-		}),
-	).optional().default([]),
+	series: z
+		.array(
+			z.object({
+				date: z.string(),
+				value: z.number(),
+			}),
+		)
+		.optional()
+		.default([]),
 });
 
 export const productUniquenessSchema = z.object({
@@ -1869,7 +1955,9 @@ export const updateFrontendMetadataSchema = z.object({
 	frontend_metadata_template: z.unknown(),
 });
 
-export type UpdateFrontendMetadata = z.infer<typeof updateFrontendMetadataSchema>;
+export type UpdateFrontendMetadata = z.infer<
+	typeof updateFrontendMetadataSchema
+>;
 
 // ─── Media schemas ────────────────────────────────────────────────────────────
 export const mediaItemSchema = z.object({
@@ -1929,23 +2017,29 @@ export const adminProductSchema = z.object({
 	rating: z.number().optional(),
 	attributes: z.array(productAttributeSchema).optional().default([]),
 	media: z.array(mediaItemSchema).nullish().default([]),
-	brands: z.array(
-		z.object({
-			id: z.string(),
-			title: z.record(z.string(), z.string()).optional(),
-			description: z.record(z.string(), z.string()).optional(),
-		}),
-	).optional().default([]),
-	categories: z.array(
-		z.object({
-			id: z.string(),
-			parent_id: z.string().nullable().optional(),
-			media_id: z.string().nullable().optional(),
-			title: z.record(z.string(), z.string()).optional(),
-			products: z.number().optional(),
-			children: z.array(z.unknown()).optional(),
-		}),
-	).optional().default([]),
+	brands: z
+		.array(
+			z.object({
+				id: z.string(),
+				title: z.record(z.string(), z.string()).optional(),
+				description: z.record(z.string(), z.string()).optional(),
+			}),
+		)
+		.optional()
+		.default([]),
+	categories: z
+		.array(
+			z.object({
+				id: z.string(),
+				parent_id: z.string().nullable().optional(),
+				media_id: z.string().nullable().optional(),
+				title: z.record(z.string(), z.string()).optional(),
+				products: z.number().optional(),
+				children: z.array(z.unknown()).optional(),
+			}),
+		)
+		.optional()
+		.default([]),
 	supplier_id: z.string().nullable().optional(),
 	suppliers: z.array(productSupplierSchema).optional().default([]),
 });
@@ -2029,7 +2123,10 @@ export const placeholderSlideSchema = z.object({
 });
 
 export const placeholderItemSchema = placeholderSlideSchema.extend({
-	slides: z.array(z.lazy(() => placeholderSlideSchema)).optional().default([]),
+	slides: z
+		.array(z.lazy(() => placeholderSlideSchema))
+		.optional()
+		.default([]),
 });
 
 export const adminPlaceholderSlideSchema = z.object({
@@ -2048,7 +2145,10 @@ export const adminPlaceholderSlideSchema = z.object({
 });
 
 export const adminPlaceholderItemSchema = adminPlaceholderSlideSchema.extend({
-	slides: z.array(z.lazy(() => adminPlaceholderSlideSchema)).optional().default([]),
+	slides: z
+		.array(z.lazy(() => adminPlaceholderSlideSchema))
+		.optional()
+		.default([]),
 });
 
 export const placeholderListSchema = z.object({
@@ -2086,7 +2186,11 @@ export type PlaceholderItem = z.infer<typeof placeholderItemSchema>;
 export type AdminPlaceholderSlide = z.infer<typeof adminPlaceholderSlideSchema>;
 export type AdminPlaceholderItem = z.infer<typeof adminPlaceholderItemSchema>;
 export type PlaceholderList = z.infer<typeof placeholderListSchema>;
-export type PlaceholderByLocationList = z.infer<typeof placeholderByLocationListSchema>;
-export type CreatePlaceholderSlide = z.infer<typeof createPlaceholderSlideSchema>;
+export type PlaceholderByLocationList = z.infer<
+	typeof placeholderByLocationListSchema
+>;
+export type CreatePlaceholderSlide = z.infer<
+	typeof createPlaceholderSlideSchema
+>;
 export type CreatePlaceholder = z.infer<typeof createPlaceholderSchema>;
 export type UpdatePlaceholder = z.infer<typeof updatePlaceholderSchema>;
