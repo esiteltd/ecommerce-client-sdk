@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { EcommerceSDK } from "../src/index";
+import { createOrderGuestSchema, createOrderSchema } from "../src/schema";
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -111,6 +112,61 @@ describe("EcommerceSDK", () => {
 	});
 
 	describe("Order Resource", () => {
+		it("should accept qicard and custom shipment checkout payloads", () => {
+			expect(() =>
+				createOrderSchema.parse({
+					locale: "ar",
+					address_id: "address-1",
+					branch: {
+						id: "00000000-0000-0000-0000-000000000001",
+					},
+					payment: {
+						provider: "qicard",
+					},
+					shipment: {
+						provider: "custom",
+					},
+					items: [{ cart_id: "cart-1" }],
+				}),
+			).not.toThrow();
+
+			expect(() =>
+				createOrderGuestSchema.parse({
+					locale: "ar",
+					branch: {
+						id: "00000000-0000-0000-0000-000000000001",
+					},
+					payment: {
+						provider: "qicard",
+					},
+					shipment: {
+						provider: "custom",
+					},
+					items: [
+						{
+							cart_id: "00000000-0000-0000-0000-000000000002",
+						},
+					],
+					customer: {
+						firstname: "Ahmed",
+						language: "Arabic",
+						phonenumber: "+9647712345678",
+					},
+					customer_address: {
+						title: "Home",
+						country: "IQ",
+						state: "Baghdad",
+						city: "Baghdad",
+						address1: "Street 1",
+						phonenumber: "+9647712345678",
+						is_default: true,
+						longitude: 44.3,
+						latitude: 33.3,
+					},
+				}),
+			).not.toThrow();
+		});
+
 		it("should request shipping rates with authorization when auth is configured", async () => {
 			sdk = new EcommerceSDK({
 				baseUrl: "https://api.example.com",

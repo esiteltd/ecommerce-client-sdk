@@ -631,10 +631,11 @@ export const createOrderSchema = z.object({
 	locale: z.string(),
 	address_id: z.string(),
 	payment: z.object({ provider: z.string() }).optional(),
+	branch: z.object({ id: z.string().uuid() }).optional(),
 	items: z.array(z.object({ cart_id: z.string() })),
 	shipment: z
 		.object({
-			service_code: z.string(),
+			service_code: z.string().optional(),
 			provider: z.string(),
 		})
 		.optional(),
@@ -642,7 +643,7 @@ export const createOrderSchema = z.object({
 
 // Payment schema for non-POS providers
 const nonPosPaymentSchema = z.object({
-	provider: z.enum(["stripe", "zaincash", "switchpayment"]),
+	provider: z.enum(["stripe", "zaincash", "switchpayment", "qicard"]),
 	payment_transaction_id: z.string().optional(),
 });
 
@@ -660,7 +661,8 @@ const guestOrderPaymentSchema = z.union([
 
 export const createOrderGuestSchema = z.object({
 	api_key: z.string().min(1).optional(),
-	branch_id: z.string().uuid().optional(), // Optional per Postman API spec
+	branch_id: z.string().uuid().optional(),
+	branch: z.object({ id: z.string().uuid() }).optional(),
 	locale: z.string().min(1),
 	address_id: z.string().uuid().optional(),
 	payment: guestOrderPaymentSchema.optional(),
